@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Add Shop Product</title>
+  <link href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700&family=Spartan:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='assets/css/theme.css') }}">
+  <style>
+    :root {
+  --first-color: hsl(176, 88%, 27%);
+  --first-color-alt: hsl(129, 44%, 94%);
+  --text-color: hsl(154, 13%, 32%);
+  --body-font: 'Lato', sans-serif;
+  --transition: 0.3s ease-in-out;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: var(--body-font);
+  background-color: var(--first-color-alt);
+  color: var(--text-color);
+  padding: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+}
+
+h2 {
+  color: var(--first-color);
+  text-align: center;
+  margin-bottom: 1.5rem;
+  font-family: 'Spartan', sans-serif;
+}
+
+form {
+  background-color: white;
+  padding: 2rem;
+  border-radius: 10px;
+  max-width: 450px;
+  width: 100%;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+  transition: var(--transition);
+}
+
+input[type="text"],
+input[type="password"],
+input[type="file"],
+input[type="submit"] {
+  width: 100%;
+  padding: 12px;
+  margin: 12px 0;
+  font-size: 1rem;
+  border: 1px solid var(--first-color);
+  border-radius: 5px;
+  transition: border-color 0.2s;
+}
+
+input[type="text"]:focus,
+input[type="password"]:focus,
+input[type="file"]:focus {
+  outline: none;
+  border-color: darkgreen;
+}
+
+input[type="submit"] {
+  background-color: var(--first-color);
+  color: white;
+  border: none;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+input[type="submit"]:hover {
+  background-color: #136c52;
+}
+
+.flash-message {
+  color: red;
+  font-size: 0.9rem;
+  margin-bottom: 1rem;
+  text-align: center;
+}
+
+    form {
+      background-color: white;
+      padding: 2rem;
+      border-radius: 10px;
+      max-width: 600px;
+      width: 100%;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+      transition: var(--transition);
+    }
+
+    label {
+      font-weight: bold;
+      display: block;
+      margin-top: 1rem;
+    }
+
+    input[type="text"],
+    input[type="number"],
+    input[type="file"],
+    textarea,
+    select {
+      width: 100%;
+      padding: 12px;
+      margin-top: 8px;
+      font-size: 1rem;
+      border: 1px solid var(--first-color);
+      border-radius: 5px;
+      transition: border-color 0.2s;
+    }
+
+    input[type="text"]:focus,
+    input[type="number"]:focus,
+    input[type="file"]:focus,
+    textarea:focus,
+    select:focus {
+      outline: none;
+      border-color: darkgreen;
+    }
+
+    input[type="submit"] {
+      background-color: var(--first-color);
+      color: white;
+      border: none;
+      padding: 12px;
+      width: 100%;
+      border-radius: 5px;
+      margin-top: 1.5rem;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    input[type="submit"]:hover {
+      background-color: #136c52;
+    }
+
+    h2 {
+      text-align: center;
+      color: var(--first-color);
+      font-family: 'Spartan', sans-serif;
+      margin-bottom: 1.5rem;
+    }
+  </style>
+</head>
+<body>
+  <form method="POST" enctype="multipart/form-data">
+    <h2>Add Shop Product</h2>
+
+    <label for="title">Title:</label>
+    <input type="text" name="title" id="title" required>
+
+    <label for="category">Category:</label>
+    <input type="text" name="category" id="category" required>
+
+    <label for="img_default">Image (Default):</label>
+    <input type="file" name="img_default" id="img_default" accept="image/*" required>
+
+    <label for="img_hover">Image (Hover):</label>
+    <input type="file" name="img_hover" id="img_hover" accept="image/*" required>
+
+    <label for="new_price">New Price:</label>
+    <input type="number" step="0.01" name="new_price" id="new_price" required>
+
+    <label for="old_price">Old Price:</label>
+    <input type="number" step="0.01" name="old_price" id="old_price" required>
+
+    <label for="badge">Badge:</label>
+    <input type="text" name="badge" id="badge">
+
+    <label for="badge_class">Badge Class:</label>
+    <input type="text" name="badge_class" id="badge_class">
+
+    <label for="description">Description:</label>
+    <textarea name="description" id="description" rows="3"></textarea>
+
+    <label for="brand">Brand:</label>
+    <input type="text" name="brand" id="brand">
+
+    <label for="tags">Tags:</label>
+    <input type="text" name="tags" id="tags">
+
+    <label for="stock_kg">Stock (kg):</label>
+    <input type="number" step="1" name="stock_kg" id="stock_kg">
+
+    <input type="submit" value="Add Product">
+  </form>
+</body>
+</html>

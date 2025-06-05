@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <!--=============== FLATICON ===============-->
+    <link
+      rel="stylesheet"
+      href="https://cdn-uicons.flaticon.com/2.0.0/uicons-regular-straight/css/uicons-regular-straight.css"
+    />
+       <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+      <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+        <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+  <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
+  <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
+  
+    <!--=============== SWIPER CSS ===============-->
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css"
+    />
+
+    <!--=============== CSS ===============-->
+    <link rel="stylesheet" href="{{ url_for('static', filename='assets/css/styles.css') }}" />
+
+    <title>Ecommerce Website</title>
+  </head>
+  <body>
+    <!--=============== HEADER ===============-->
+    <header class="header">
+      <div class="header__top">
+        <div class="header__container container">
+          <div class="header__contact">
+            <span>(+91) - 9894151801</span>
+            {% if lang == 'ta' %}
+            <span>வடக்கன்குளம், திருநெல்வேலி</span>
+            {% else %}
+              <span>Vadakkankulam ,Tirunelveli </span>
+            {% endif %}
+          </div>
+          <!-- <p class="header__alert-news">
+            Super Values Deals - Save more coupons
+          </p> -->
+          <form method="POST" action="/set-language" class="header__top-action">
+          <select name="language" onchange="this.form.submit()" style="border: none; background: transparent; font-size: 1rem; color: inherit;">
+            <option value="en" {{ 'selected' if session.get('lang') == 'en' else '' }}>English</option>
+            <option value="ta" {{ 'selected' if session.get('lang') == 'ta' else '' }}>தமிழ்</option>
+          </select>
+        </form>
+        </div>
+      </div>
+      <nav class="nav container">
+        <a href="/" class="nav__logo">
+          <img src="{{ url_for('static', filename='assets/img/logo.png') }}" alt="Logo" class="nav__logo-img" >
+        </a>
+        <div class="nav__menu" id="nav-menu">
+          <div class="nav__menu-top">
+            <a href="/" class="nav__menu-logo">
+              <img src="{{ url_for('static', filename='assets/img/logo.png') }}" alt="">
+            </a>
+            <div class="nav__close" id="nav-close">
+              <i class="fi fi-rs-cross-small"></i>
+            </div>
+          </div>
+          <ul class="nav__list">
+            <li class="nav__item">
+              <a href="/" class="nav__link active-link">Home</a>
+            </li>
+            <li class="nav__item">
+              <a href="shop" class="nav__link">Shop</a>
+            </li>
+            <li class="nav__item">
+              <a href="/story" class="nav__link">Story</a>
+            </li>
+            <li class="nav__item">
+              <a href="/contact" class="nav__link">Contact Us</a>
+            </li>
+            <!-- <li class="nav__item">
+              <a href="login-register.html" class="nav__link">Login</a>
+            </li> -->
+          </ul>
+          <!-- <div class="header__search">
+            <input
+              type="text"
+              placeholder="Search For Items..."
+              class="form__input"
+            />
+            <button class="search__btn">
+              <img src="{{ url_for('static', filename='assets/img/search.png') }} " alt="search icon" />
+            </button>
+          </div> -->
+        </div>
+        <div class="header__user-actions">
+          <!-- <a href="wishlist.html" class="header__action-btn" title="Wishlist">
+            <img src=" {{ url_for('static', filename='assets/img/icon-heart.svg') }}" alt="" />
+            <span class="count">3</span>
+          </a> -->
+          <a href="/cart" class="header__action-btn" title="Cart">
+            <img src=" {{ url_for('static', filename='assets/img/icon-cart.svg') }}" alt="" />
+          </a>
+          <div class="header__action-btn nav__toggle" id="nav-toggle">
+            <img src="{{ url_for('static', filename='/assets/img/menu-burger.svg') }} " alt="">
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <!--=============== MAIN ===============-->
+    <main class="main">
+      <!--=============== HOME ===============-->
+
+<section class="home section--lg py-5" id="home">
+  <div class="container pt-0 pt-lg-3">
+    <div class="row align-items-center">
+      
+      <!-- Left Content -->
+    <div class="col-12 col-lg-6 mb-4 mb-lg-0">
+    <div class="home__content text-center text-lg-start d-flex flex-column align-items-center align-items-lg-start px-3 px-lg-4 pt-0 pt-lg-5">
+      
+    <span class="home__subtitle mb-3" style="
+  font-size: calc(1rem + 0.5vw); 
+  font-weight: 600; 
+  color: #FF6F61;">
+  {% if lang == 'ta' %}
+ஒவ்வொரு முறை சாப்பிடும்போதும் வீட்டின் சுவையை உணருங்கள்
+  {% else %}
+    Feel the Taste of Home in Every Bite
+  {% endif %}
+</span>
+
+    
+     {% if lang == 'ta' %}
+     <h1 class="home__title mb-4" style="
+      font-family: 'Amsterdam One', sans-serif;
+      font-size: calc(2rem + 1vw);
+      font-weight: 700;
+      line-height: 1.2;
+      margin-bottom: 1rem;
+      color: #054a00;
+    ">
+சீக்ரெட் ஸ்பூன்
+  {% else %}
+  <h1 class="home__title mb-4" style="
+      font-family: 'Amsterdam One', sans-serif;
+      font-size: calc(2rem + 3vw);
+      font-weight: 700;
+      line-height: 1.2;
+      margin-bottom: 1rem;
+      color: #054a00;
+    ">
+    Secret Spoon
+  {% endif %}
+      <br>
+      
+       {% if lang == 'ta' %}
+       <span style="
+        font-size: calc(1rem ); 
+        font-weight: 500; 
+        color: #333;
+      ">
+ஒவ்வொரு முறை சாப்பிடும்போதும் வீட்டின் சுவையை உணருங்கள்
+  {% else %}
+  <span style="
+        font-size: calc(1rem + 1.2vw); 
+        font-weight: 500; 
+        color: #333;
+      ">
+    When Taste Meets Mystery
+  {% endif %}
+        
+      </span>
+    </h1>
+
+  {% if lang == 'ta' %}
+  <p class="home__description mb-4" style="
+      font-size: calc(0.9rem + 0.1vw); 
+      color: #555; 
+      max-width: 500px;">
+    ✔ FSSAI சான்றளிக்கப்பட்டது |<strong> 100% வீட்டில் தயாரிக்கப்பட்டது</strong> | வண்ணமில்லாது
+  </p>
+{% else %}
+  <p class="home__description mb-4" style="
+      font-size: calc(0.9rem + 0.1vw); 
+      color: #555; 
+      max-width: 500px;">
+    ✔ FSSAI Certified |<strong> 100% Homemade</strong> | Color-Free 
+  </p>
+{% endif %}
+
+
+    
+    <a href="shop"
+      class="btn btn-lg px-4 py-2"
+      style="background-color: #006400; border: none; color: white;display: flex ; align-items: center;"
+      onmouseover="this.style.backgroundColor='#32CD32'"
+      onmouseout="this.style.backgroundColor='#006400'"
+      onmousedown="this.style.backgroundColor='#004d00'"
+      onmouseup="this.style.backgroundColor='#32CD32'">
+      Shop Now
+    </a>
+    </div>
+    </div>
+
+      <!-- Right Carousel -->
+      <div class="col-12 col-lg-6">
+        <div id="carouselExampleControls" class="carousel slide" data-bs-ride="carousel">
+          <ol class="carousel-indicators">
+            <li data-bs-target="#carouselExampleControls" data-bs-slide-to="0" class="active"></li>
+            <li data-bs-target="#carouselExampleControls" data-bs-slide-to="1"></li>
+          </ol>
+          <div class="carousel-inner">
+            <div class="carousel-item active">
+              <img src="{{ url_for('static', filename='./assets/img/c1.png') }}" class="d-block w-100" alt="Slide 1" style="max-height: 400px; object-fit: contain;">
+            </div>
+            <div class="carousel-item">
+              <img src="{{ url_for('static', filename='./assets/img/c2.png') }} " class="d-block w-100" alt="Slide 2" style="max-height: 400px; object-fit: contain;">
+            </div>
+          </div>
+          <button class="carousel-control-next carousel_buttons" type="button"
+            data-bs-target="#carouselExampleControls" data-bs-slide="next">
+            <ion-icon name="arrow-forward-circle-outline"></ion-icon>
+          </button>
+          <button class="carousel-control-prev carousel_buttons2" type="button"
+            data-bs-target="#carouselExampleControls" data-bs-slide="prev">
+            <ion-icon name="arrow-back-circle-outline"></ion-icon>
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+  <!-- End Home -->
+        </div>
+      </section>
+  <section class="categories container section">
+  {% if lang == 'ta' %}
+  <h3 class="section__title"><span>பிரபலமான</span> வகைகள்</h3>
+{% else %}
+  <h3 class="section__title"><span>Popular</span> Categories</h3>
+{% endif %}
+
+
+  <div class="categories__container swiper">
+    
+    <!-- Only slides inside swiper-wrapper -->
+    <div class="swiper-wrapper">
+      {% for category in categories %}
+        <a href="{{ url_for('shop', category=category['name']) }}" class="category__item swiper-slide">
+          <img
+            src="{{ url_for('static', filename='assets/img/' ~ category['image_url']) }}"
+            alt="{{ category['name'] }}"
+            class="category__img"
+          />
+          <h3 class="category__title">{{ category['name'] }}</h3>
+        </a>
+      {% endfor %}
+    </div>
+
+    <!-- These should be siblings of swiper-wrapper -->
+    <div class="swiper-button-prev">
+      <i class="fi fi-rs-angle-left"></i>
+    </div>
+    <div class="swiper-button-next">
+      <i class="fi fi-rs-angle-right"></i>
+    </div>
+
+  </div>
+</section>
+
+      <!--=============== PRODUCTS ===============-->
+   <section class="products container section">
+  <div class="tab__btns">
+    {% for tag in tags %}
+      <span class="tab__btn {% if loop.first %}active-tab{% endif %}" data-target="{{ tag }}">{{ tag | capitalize }}</span>
+    {% endfor %}
+  </div>
+
+  <div class="tab__items">
+    <div class="tab__item active-tab" id="product-tab">
+      <div class="products__container grid" id="products-container">
+        {% for product in products %}
+        <div class="product__item" data-tag="{{ product.tags | lower }}">
+          <div class="product__banner">
+
+            <a href="{{ url_for('details', product_id=product['id']) }}" class="product__images">
+              <img src="{{ url_for('static', filename=product.img_default) }}" alt="product image" class="product__img default"/>
+              <img src="{{ url_for('static', filename= product.img_hover) }}" alt="hover image" class="product__img hover"/>
+            </a>  
+            <div class="product__actions">
+              <a href="#" class="action__btn"><i class="fi fi-rs-eye" aria-label="Quick View"></i></a>
+              <!-- <a href="#" class="action__btn"><i class="fi fi-rs-heart"></i></a>
+              <a href="#" class="action__btn"><i class="fi fi-rs-shuffle"></i></a> -->
+            </div>
+            {% if product.badge %}
+            <div class="product__badge light-blue">{{ product.badge }}</div>
+            {% endif %}
+          </div>
+
+          <div class="product__content">
+            <span class="product__category">{{ product.category }}</span>
+            <h3 class="product__title">{{ product.title }}</h3>
+            <div class="product__rating">
+              <i class="fi fi-rs-star"></i><i class="fi fi-rs-star"></i><i class="fi fi-rs-star"></i><i class="fi fi-rs-star"></i><i class="fi fi-rs-star"></i>
+            </div>
+            <div class="product__price flex">
+              <span class="new__price">${{ product.price }}</span>
+              <span class="old__price">${{ product.old_price }}</span>
+            </div>
+            <a href="#" class="action__btn cart__btn"><i class="fi fi-rs-shopping-bag-add"></i></a>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</section>
+        
+      <!--=============== DEALS ===============-->
+      <section class="deals section">
+        <div class="deals__container container grid">
+          <div class="deals__item">
+            <div class="deals__group">
+              <h3 class="deals__brand">Deals of the Day</h3>
+              <span class="deals__category">Limited quantities</span>
+            </div>
+            <h4 class="deals__title">Summer Collection New Modern Design</h4>
+            <div class="deals__price flex">
+              <span class="new__price">$139.00</span>
+              <span class="old__price">$160.99</span>
+            </div>
+            <div class="deals__group">
+              <p class="deals__countdown-text">Hurry Up! Offer Ends In:</p>
+              <div class="countdown">
+                <div class="countdown__amount">
+                  <p class="countdown__period">02</p>
+                  <span class="unit">Days</span>
+                </div>
+                <div class="countdown__amount">
+                  <p class="countdown__period">22</p>
+                  <span class="unit">Hours</span>
+                </div>
+                <div class="countdown__amount">
+                  <p class="countdown__period">57</p>
+                  <span class="unit">Mins</span>
+                </div>
+                <div class="countdown__amount">
+                  <p class="countdown__period">28</p>
+                  <span class="unit">Sec</span>
+                </div>
+              </div>
+            </div>
+            <div class="deals__btn">
+              <a href="details.html" class="btn btn--md">Shop Now</a>
+            </div>
+          </div>
+          <div class="deals__item">
+            <div class="deals__group">
+              <h3 class="deals__brand">Women Clothing</h3>
+              <span class="deals__category">Shirts & Bag</span>
+            </div>
+            <h4 class="deals__title">Try Something new on vacation</h4>
+            <div class="deals__price flex">
+              <span class="new__price">$178.00</span>
+              <span class="old__price">$256.99</span>
+            </div>
+            <div class="deals__group">
+              <p class="deals__countdown-text">Hurry Up! Offer Ends In:</p>
+              <div class="countdown">
+                <div class="countdown__amount">
+                  <p class="countdown__period">02</p>
+                  <span class="unit">Days</span>
+                </div>
+                <div class="countdown__amount">
+                  <p class="countdown__period">22</p>
+                  <span class="unit">Hours</span>
+                </div>
+                <div class="countdown__amount">
+                  <p class="countdown__period">57</p>
+                  <span class="unit">Mins</span>
+                </div>
+                <div class="countdown__amount">
+                  <p class="countdown__period">28</p>
+                  <span class="unit">Sec</span>
+                </div>
+              </div>
+            </div>
+            <div class="deals__btn">
+              <a href="details.html" class="btn btn--md">Shop Now</a>
+            </div>
+          </div>
+        </div>
+      </section>
+      <!--=============== NEWSLETTER ===============-->
+      <section class="newsletter section home__newsletter">
+        <div class="newsletter__container container grid">
+          <h3 class="newsletter__title flex">
+            <img
+              src="{{ url_for('static', filename='./assets/img/icon-email.svg') }}"
+              alt=""
+              class="newsletter__icon"
+            />
+            Sign in to Newsletter
+          </h3>
+          <p class="newsletter__description">
+            ...and receive $25 coupon for first shopping.
+          </p>
+          <form action="" class="newsletter__form">
+            <input
+              type="text"
+              placeholder="Enter Your Email"
+              class="newsletter__input"
+            />
+            <button type="submit" class="newsletter__btn">Subscribe</button>
+          </form>
+        </div>
+      </section>
+    </main>
+    <!--=============== FOOTER ===============-->
+    <footer class="footer container">
+      <div class="footer__container grid">
+        <div class="footer__content">
+          <a href="index.html" class="footer__logo">
+            <img src="{{ url_for('static', filename='assets/img/logo.png') }}" alt="" class="footer__logo-img" />
+          </a>
+          <h4 class="footer__subtitle">Contact</h4>
+          <p class="footer__description">
+            <span>Address:</span> 13 Tlemcen Road, Street 32, Beb-Wahren
+          </p>
+          <p class="footer__description">
+            <span>Phone:</span> +01 2222 365 /(+91) 01 2345 6789
+          </p>
+          <p class="footer__description">
+            <span>Hours:</span> 10:00 - 18:00, Mon - Sat
+          </p>
+          <div class="footer__social">
+            <h4 class="footer__subtitle">Follow Me</h4>
+            <div class="footer__links flex">
+              <!-- <a href="#">
+                <img
+                  src="./assets/img/icon-facebook.svg"
+                  alt=""
+                  class="footer__social-icon"
+                />
+              </a> -->
+              <!-- <a href="#">
+                <img
+                  src="./assets/img/icon-twitter.svg"
+                  alt=""
+                  class="footer__social-icon"
+                />
+              </a> -->
+              <a href="#">
+                <img
+                  src="{{ url_for('static', filename='./assets/img/icon-instagram.svg') }}"
+                  alt=""
+                  class="footer__social-icon"
+                />
+              </a>
+              <!-- <a href="#">
+                <img
+                  src="./assets/img/icon-pinterest.svg"
+                  alt=""
+                  class="footer__social-icon"
+                />
+              </a> -->
+              <a href="#">
+                <img
+                  src="{{ url_for('static', filename='./assets/img/icon-youtube.svg') }}"
+                  alt=""
+                  class="footer__social-icon"
+                />
+              </a>
+            </div>
+          </div>
+        </div>
+        <div class="footer__content">
+          <h3 class="footer__title">Address</h3>
+          <ul class="footer__links" style="padding-left: 0rem;">
+            <li><a href="#" class="footer__link">About Us</a></li>
+            <li><a href="#" class="footer__link">Delivery Information</a></li>
+            <li><a href="#" class="footer__link">Privacy Policy</a></li>
+            <li><a href="#" class="footer__link">Terms & Conditions</a></li>
+            <li><a href="#" class="footer__link">Contact Us</a></li>
+            <li><a href="#" class="footer__link">Support Center</a></li>
+          </ul>
+        </div>
+        <div class="footer__content">
+          <h3 class="footer__title">My Account</h3>
+          <ul class="footer__links" style="padding-left: 0rem;">
+            <li><a href="#" class="footer__link">Sign In</a></li>
+            <li><a href="#" class="footer__link">View Cart</a></li>
+            <li><a href="#" class="footer__link">My Wishlist</a></li>
+            <li><a href="#" class="footer__link">Track My Order</a></li>
+            <li><a href="#" class="footer__link">Help</a></li>
+            <li><a href="#" class="footer__link">Order</a></li>
+          </ul>
+        </div>
+        <div class="footer__content">
+          <h3 class="footer__title">Certified By FSSAI</h3>
+          <img
+            src="{{ url_for('static', filename='./assets/img/fssai.png') }}"
+            alt=""
+            class="payment__img"
+          />
+        </div>
+      </div>
+      <div class="footer__bottom">
+        <p class="copyright">&copy; 2024 Evara. All right reserved</p>
+        <span class="designer">Designer by Crypticalcoder</span>
+      </div>
+    </footer>
+
+    <!--=============== SWIPER JS ===============-->
+    <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+
+    <!--=============== MAIN JS ===============-->
+    <script src="{{ url_for('static', filename='assets/js/main.js') }} "></script>
+    
+<!-- =================== JS for Filtering =================== -->
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    const tabButtons = document.querySelectorAll(".tab__btn");
+    const productItems = document.querySelectorAll(".product__item");
+
+    tabButtons.forEach(button => {
+      button.addEventListener("click", () => {
+        // Update active tab
+        tabButtons.forEach(btn => btn.classList.remove("active-tab"));
+        button.classList.add("active-tab");
+
+        const targetTag = button.getAttribute("data-target");
+
+        productItems.forEach(item => {
+          const tag = item.getAttribute("data-tag");
+          item.style.display = (tag === targetTag) ? "block" : "none";
+        });
+      });
+    });
+
+    // Trigger default filter
+    if (tabButtons.length > 0) {
+      tabButtons[0].click();
+    }
+  });
+</script>
+  </body>
+</html>

@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Edit Product Detail</title>
+  <style>
+    body { font-family: Arial; padding: 20px; background: #f7f7f7; }
+    form { background: white; padding: 20px; border-radius: 10px; max-width: 600px; margin: auto; box-shadow: 0 0 10px #ccc; }
+    input[type="text"], textarea, input[type="submit"] {
+      width: 100%; padding: 10px; margin: 10px 0;
+    }
+    input[type="submit"] {
+      background-color: #4CAF50; color: white; border: none;
+    }
+  </style>
+</head>
+<body>
+<h2>Edit Product Detail</h2>
+<form method="post">
+  Ingredients: <textarea name="ingredients">{{ detail['ingredients'] }}</textarea><br>
+  Health Benefits: <textarea name="health_benefits">{{ detail['health_benefits'] }}</textarea><br>
+  <input type="submit" value="Update">
+</form>
+  </form>
+</body>
+</html>

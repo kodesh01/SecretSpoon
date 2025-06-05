@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <form method="post">
+  Title: <input type="text" name="title" value="{{ product['title'] }}"><br>
+  Category: <input type="text" name="category" value="{{ product['category'] }}"><br>
+  Price: <input type="text" name="price" value="{{ product['price'] }}"><br>
+  Old Price: <input type="text" name="old_price" value="{{ product['old_price'] }}"><br>
+  Badge: <input type="text" name="badge" value="{{ product['badge'] }}"><br>
+  Tag: <input type="text" name="tag" value="{{ product['tag'] }}"><br>
+  <input type="submit" value="Update">
+</form>
+
+</body>
+</html>

@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Edit Shop Product</title>
+  <link href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700&family=Spartan:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --first-color: hsl(176, 88%, 27%);
+      --first-color-alt: hsl(129, 44%, 94%);
+      --text-color: hsl(154, 13%, 32%);
+      --body-font: 'Lato', sans-serif;
+      --transition: 0.3s ease-in-out;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: var(--body-font);
+      background-color: var(--first-color-alt);
+      color: var(--text-color);
+      padding: 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+    }
+
+    form {
+      background-color: white;
+      padding: 2rem;
+      border-radius: 10px;
+      max-width: 600px;
+      width: 100%;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+      transition: var(--transition);
+    }
+
+    h2 {
+      text-align: center;
+      color: var(--first-color);
+      font-family: 'Spartan', sans-serif;
+      margin-bottom: 1.5rem;
+    }
+
+    label {
+      font-weight: bold;
+      display: block;
+      margin-top: 1rem;
+    }
+
+    input[type="text"],
+    input[type="number"],
+    input[type="file"],
+    textarea {
+      width: 100%;
+      padding: 12px;
+      margin-top: 8px;
+      font-size: 1rem;
+      border: 1px solid var(--first-color);
+      border-radius: 5px;
+      transition: border-color 0.2s;
+    }
+
+    input:focus,
+    textarea:focus {
+      outline: none;
+      border-color: darkgreen;
+    }
+
+    input[type="submit"] {
+      background-color: var(--first-color);
+      color: white;
+      border: none;
+      padding: 12px;
+      width: 100%;
+      border-radius: 5px;
+      margin-top: 1.5rem;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    input[type="submit"]:hover {
+      background-color: #136c52;
+    }
+
+    .img-preview {
+      display: block;
+      margin-top: 10px;
+      max-width: 100%;
+      border-radius: 5px;
+    }
+  </style>
+</head>
+<body>
+  <form method="POST" enctype="multipart/form-data">
+    <h2>Edit Shop Product</h2>
+
+    <label for="title">Title:</label>
+    <input type="text" name="title" id="title" value="{{ sp['title'] }}" required>
+
+    <label for="category">Category:</label>
+    <input type="text" name="category" id="category" value="{{ sp['category'] }}" required>
+
+    <label for="img_default">Image (Default):</label>
+    {% if sp['img_default'] %}
+      <img src="/static/{{ sp['img_default'] }}" class="img-preview">
+    {% endif %}
+    <input type="file" name="img_default" id="img_default" accept="image/*">
+
+    <label for="img_hover">Image (Hover):</label>
+    {% if sp['img_hover'] %}
+      <img src="/static/{{ sp['img_hover'] }}" class="img-preview">
+    {% endif %}
+    <input type="file" name="img_hover" id="img_hover" accept="image/*">
+
+    <label for="new_price">New Price:</label>
+    <input type="number" step="0.01" name="new_price" id="new_price" value="{{ sp['new_price'] }}" required>
+
+    <label for="old_price">Old Price:</label>
+    <input type="number" step="0.01" name="old_price" id="old_price" value="{{ sp['old_price'] }}" required>
+
+    <label for="badge">Badge:</label>
+    <input type="text" name="badge" id="badge" value="{{ sp['badge'] }}">
+
+    <label for="badge_class">Badge Class:</label>
+    <input type="text" name="badge_class" id="badge_class" value="{{ sp['badge_class'] }}">
+
+    <label for="description">Description:</label>
+    <textarea name="description" id="description" rows="3">{{ sp['description'] }}</textarea>
+
+    <label for="brand">Brand:</label>
+    <input type="text" name="brand" id="brand" value="{{ sp['brand'] }}">
+<!-- 
+    <label for="sku">SKU:</label>
+    <input type="text" name="sku" id="sku" value="{{ sp['sku'] }}"> -->
+
+    <label for="tags">Tags:</label>
+    <input type="text" name="tags" id="tags" value="{{ sp['tags'] }}">
+
+    <label for="stock_kg">Stock (kg):</label>
+    <input type="number" step="1" name="stock_kg" id="stock_kg" value="{{ sp['stock_kg'] }}">
+
+    <input type="submit" value="Update Product">
+  </form>
+</body>
+</html>

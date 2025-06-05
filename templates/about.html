@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <link
+      rel="stylesheet"
+      href="https://cdn-uicons.flaticon.com/2.0.0/uicons-regular-straight/css/uicons-regular-straight.css"
+    />
+       <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+      <link href="assets/css/main.css" rel="stylesheet">
+      <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+        <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+  <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
+  <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
+      <link rel="stylesheet" href="{{ url_for('static', filename='assets/css/styles.css') }}" />
+
+  <title>Golden Sparkle Timeline</title>
+  <style>
+    body {
+      margin: 0;
+      overflow-x: hidden;
+      background-color: #ffffff;
+      color: #0b3d0b;
+    }
+    h1 {
+      text-align: center;
+      font-size: 3rem;
+      color: #0b3d0b;
+      margin-top: 50px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      animation: glowText 2s ease-in-out infinite alternate;
+    }
+    
+    .timeline-container {
+      position: relative;
+      width: 100%;
+        max-width: 1200px;
+
+      margin: auto;
+      z-index: 0;
+    }
+    .svg-path {
+      position: absolute;
+      top: 320px;
+      left: 0;
+      z-index: -1;
+      width: 100%;
+      pointer-events: none;
+    }
+    #thePath {
+      stroke: #0b3d0b;
+      stroke-width: 4;
+      stroke-dasharray: 4000;
+      stroke-dashoffset: 4000;
+      transition: stroke-dashoffset 0.2s ease-out;
+    }
+    .gold-ball {
+      position: absolute;
+      width: 25px;
+      height: 25px;
+      background: radial-gradient(circle, #66ff66, #aaffaa, #0b3d0b);
+      border-radius: 50%;
+      box-shadow: 0 0 15px #66ff66, 0 0 30px #99ff99;
+      z-index: 0;
+      transform: translate(-50%, -50%);
+      animation: sparkle 1s infinite ease-in-out alternate;
+    }
+    @keyframes sparkle {
+      0% { box-shadow: 0 0 10px #008200, 0 0 20px #99ff99; }
+      100% { box-shadow: 0 0 20px #66ff66, 0 0 40px #99ff99; }
+    }
+    .stage {
+      position: relative;
+      width: 45%;
+      background: rgba(235, 255, 235, 0.95);
+      border-left: 5px solid #0b3d0b;
+      padding: 20px;
+      border-radius: 10px;
+      margin: 80px 0;
+      box-shadow: 0 5px 20px rgba(0, 50, 0, 0.3);
+      z-index: 2;
+      transition: all 0.3s ease;
+      transform-origin: center;
+    }
+    .stage:hover {
+      transform: scale(1.03);
+      box-shadow: 0 0 20px #66ff66, 0 0 40px #aaffaa, 0 0 60px #00cc00;
+      border-left: 5px solid #66ff66;
+    }
+    
+
+    .stage img {
+      width: 100%;
+      border-radius: 10px;
+      margin-top: 10px;
+    }
+    .stage-left {
+      float: left;
+      clear: both;
+      transform: translateX(-10%);
+    }
+    .stage-right {
+      float: right;
+      clear: both;
+      transform: translateX(10%);
+    }
+    @media screen and (max-width: 768px) {
+      .stage, .stage-left, .stage-right {
+        width: 100%;
+        float: none;
+        transform: none;
+        margin: 40px 0;
+      }
+      .svg-path {
+        display: none;
+      }
+      .timeline-container {
+        padding: 50px 10px;
+      }
+      h1 {
+        font-size: 2rem;
+        margin-top: 30px;
+      }
+      .stage img {
+        margin-top: 15px;
+      }
+    }
+    #glitter-container {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 2;
+    }
+    .glitter {
+      position: absolute;
+      width: 4px;
+      height: 4px;
+      background: radial-gradient(circle, #66ff66, #aaffaa, #99ff99);
+      border-radius: 50%;
+      opacity: 0.9;
+      animation: glitter-fall 1s linear forwards;
+      pointer-events: none;
+    }
+    @keyframes glitter-fall {
+      0% {
+        transform: translate(0, 0) scale(1);
+        opacity: 1;
+      }
+      100% {
+        transform: translate(var(--dx), var(--dy)) scale(0.3);
+        opacity: 0;
+      }
+    }
+     @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(50px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+  </style>
+
+</head>
+
+<body>
+  <header class="header">
+      <div class="header__top">
+        <div class="header__container container">
+          <div class="header__contact">
+            <span>(+91) - 9894151801</span>
+            {% if lang == 'ta' %}
+            <span>வடக்கன்குளம், திருநெல்வேலி</span>
+            {% else %}
+              <span>Vadakkankulam ,Tirunelveli </span>
+            {% endif %}
+          </div>
+          <!-- <p class="header__alert-news">
+            Super Values Deals - Save more coupons
+          </p> -->
+          <form method="POST" action="/set-language" class="header__top-action">
+          <select name="language" onchange="this.form.submit()" style="border: none; background: transparent; font-size: 1rem; color: inherit;">
+            <option value="en" {{ 'selected' if session.get('lang') == 'en' else '' }}>English</option>
+            <option value="ta" {{ 'selected' if session.get('lang') == 'ta' else '' }}>தமிழ்</option>
+          </select>
+        </form>
+        </div>
+      </div>
+      <nav class="nav container">
+        <a href="/" class="nav__logo">
+          <img src="{{ url_for('static', filename='assets/img/logo.png') }}" alt="Logo" class="nav__logo-img" >
+        </a>
+        <div class="nav__menu" id="nav-menu">
+          <div class="nav__menu-top">
+            <a href="/" class="nav__menu-logo">
+              <img src="{{ url_for('static', filename='assets/img/logo.png') }}" alt="">
+            </a>
+            <div class="nav__close" id="nav-close">
+              <i class="fi fi-rs-cross-small"></i>
+            </div>
+          </div>
+          <ul class="nav__list" >
+            <li class="nav__item">
+              <a href="/" class="nav__link">Home</a>
+            </li>
+            <li class="nav__item">
+              <a href="/shop" class="nav__link ">Shop</a>
+            </li>
+            <!-- <li class="nav__item">
+              <a href="accounts.html" class="nav__link">My Account</a>
+            </li> -->
+            <li class="nav__item">
+              <a href="/story" class="nav__link  active-link">Story</a>
+            </li>
+            <li class="nav__item">
+              <a href="/contact" class="nav__link">Contact Us</a>
+            </li>
+            <!-- <li class="nav__item">
+              <a href="compare.html" class="nav__link">Compare</a>
+            </li>
+            <li class="nav__item">
+              <a href="login-register.html" class="nav__link">Login</a>
+            </li> -->
+          </ul>
+          <!-- <div class="header__search">
+            <input
+              type="text"
+              placeholder="Search For Items..."
+              class="form__input"
+            />
+            <button class="search__btn">
+              <img src="{{ url_for('static', filename='assets/img/search.png') }} " alt="search icon" />
+            </button>
+          </div> -->
+        </div>
+        <div class="header__user-actions">
+          <!-- <a href="wishlist.html" class="header__action-btn" title="Wishlist">
+            <img src=" {{ url_for('static', filename='assets/img/icon-heart.svg') }}" alt="" />
+            <span class="count">3</span>
+          </a> -->
+          <a href="cart" class="header__action-btn" title="Cart">
+            <img src=" {{ url_for('static', filename='assets/img/icon-cart.svg') }}" alt="" />
+          </a>
+          <div class="header__action-btn nav__toggle" id="nav-toggle">
+            <img src="{{ url_for('static', filename='/assets/img/menu-burger.svg') }} " alt="">
+          </div>
+        </div>
+      </nav>
+    </header>
+    <div style="background-color:#ffffff;margin:0;padding:0;">
+      <div style="max-width:1200px;margin:0 auto;padding:40px 20px;">
+
+    <!-- HEADER -->
+    <h1 style="text-align:center;font-size:3em;color:#2e4e1e;margin-bottom:30px;animation:fadeInUp 1s ease-out;">
+      Our Story
+    </h1>
+    <p style="text-align:center;font-size:1.2em;margin-bottom:70px;color:#4d774e;animation:fadeInUp 1s ease-out;">
+      Pickles that taste like home. Masalas that smell like tradition.Pickles that taste like home. Masalas that smell like tradition.Pickles that taste like home. Masalas that smell like tradition.Pickles that taste like home. Masalas that smell like tradition.Pickles that taste like home. Masalas that smell like tradition.Pickles that taste like home. Masalas that smell like tradition.Pickles that taste like home. Masalas that smell like tradition.
+    </p>
+    <div style="width: 100px; height: 6px; background-color: #4d774e; margin: 0 auto 40px auto; border-radius: 2px; animation: fadeInUp 1s ease-out;"></div>
+
+
+    <!-- FOUNDER SECTION -->
+    <div class="animate-on-scroll" style="
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 30px;
+  margin-bottom: 60px;
+  opacity: 0;
+  transform: translateY(50px);
+  transition: all 1s ease;
+">
+  <div style="flex: 1 1 100%; text-align: center;">
+    <img src="{{ url_for('static', filename='assets/img/Kodesh_image.jpeg') }}"
+         alt="Founder"
+         style="border-radius: 50%; box-shadow: 0 10px 20px rgba(0,0,0,0.1); width: 300px; height: 300px; object-fit: cover;">
+  </div>
+
+  <div style="flex: 1 1 100%;">
+    <h2 style="color: #2e4e1e; font-size: 2em; margin-bottom: 15px; text-align: center;">Meet Our Founder</h2>
+    <p style="font-size: 1.2em; line-height: 1.7em; text-align: justify; color: #333;">
+      Hello, I’m <strong>Kavitha Rajan</strong>, the founder of <strong>Sundari Foods</strong>. My journey began in my grandmother's kitchen, where the aroma of freshly ground spices and the crackle of mustard seeds were everyday music. After years of making pickles and masalas for friends and family, I decided to bring that <strong>homemade love</strong> to every household.
+    </p>
+    <p style="font-size: 1.2em; line-height: 1.7em; text-align: justify; color: #333;">
+      What started as a small home business is now a brand trusted by thousands. Our promise? <strong>No preservatives, no shortcuts</strong> — just honest, traditional flavors that speak for themselves.
+    </p>
+  </div>
+</div>
+
+
+    <!-- CORE VALUES -->
+    <div class="animate-on-scroll" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:30px;opacity:0;transform:translateY(50px);transition:all 1s ease;">
+      <div style="background:#f1f9f2;border-radius:12px;padding:20px;text-align:center;box-shadow:0 4px 12px rgba(0,0,0,0.05);transition:transform 0.3s;">
+        <h3 style="color:#2e4e1e;margin-bottom:10px;">👩‍🍳 Handmade</h3>
+        <p style="color:#444;">Every batch is made in small quantities with hand-picked ingredients and lots of love.</p>
+      </div>
+      <div style="background:#f1f9f2;border-radius:12px;padding:20px;text-align:center;box-shadow:0 4px 12px rgba(0,0,0,0.05);transition:transform 0.3s;">
+        <h3 style="color:#2e4e1e;margin-bottom:10px;">🌿 No Preservatives</h3>
+        <p style="color:#444;">We never use chemicals or artificial preservatives. Just natural taste and tradition.</p>
+      </div>
+      <div style="background:#f1f9f2;border-radius:12px;padding:20px;text-align:center;box-shadow:0 4px 12px rgba(0,0,0,0.05);transition:transform 0.3s;">
+        <h3 style="color:#2e4e1e;margin-bottom:10px;">🤝 Trusted by Families</h3>
+        <p style="color:#444;">Thousands of repeat customers from across India — because once you taste it, you come back for more.</p>
+      </div>
+    </div>
+
+    <!-- BANNER -->
+    <div class="animate-on-scroll" style="margin-top:60px;background:linear-gradient(45deg,#dfffe0,#a3d9a5);padding:30px;border-radius:15px;text-align:center;color:#1c3d1a;font-size:1.3em;font-weight:600;opacity:0;transform:translateY(50px);transition:all 1s ease;">
+      🍋 100% Authentic Ingredients | 🌶️ Family Recipes | 🚚 Fast Delivery Across India
+    </div>
+  </div>
+  </div>
+<div class="timeline-container">
+
+  <!-- SVG Path -->
+  <svg id="scrollPath" class="svg-path" width="897" height="1627" viewBox="0 0 897 1627" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path id="thePath" d="M415.5 1H896V413H1V829.5" />
+
+  </svg>
+
+  <!-- Sparkling Ball -->
+  <div id="ball" class="gold-ball"></div>
+  
+
+  <!-- Glitter Container -->
+  <div id="glitter-container"></div>
+  
+  <!-- Timeline Stages -->
+   <h1>Our Product Story</h1>
+ <div class="stage stage-left">
+  <h3>Stage 1: Beginning</h3>
+  <p>This is the start of our golden journey...</p>
+  <img src="{{ url_for('static', filename='assets/img/logo.png') }}" alt="Stage 1 Image">
+</div>
+<div class="stage stage-right">
+  <h3>Stage 2: Growth</h3>
+  <p>As we grew, we built stronger foundations...</p>
+  <img src="{{ url_for('static', filename='assets/img/logo.png') }}" alt="Stage 2 Image">
+</div>
+  <div class="stage stage-left">
+    <h2>Aug 2019 - First Product Launch</h2>
+    <p>We launched our first product and gained early traction.</p>
+    <img src="{{ url_for('static', filename='assets/img/logo.png') }}" alt="Stage 2">
+  </div>
+</div>
+<!--=============== NEWSLETTER ===============-->
+      <section class="newsletter section home__newsletter ">
+        <div class="newsletter__container container grid">
+        </div>
+      </section>
+    </main>
+
+    <!--=============== FOOTER ===============-->
+    <footer class="footer container">
+      <div class="footer__container grid">
+        <div class="footer__content">
+          <a href="index.html" class="footer__logo">
+            <img src="{{ url_for('static', filename='./assets/img/logo.png') }}" alt="" class="footer__logo-img" />
+          </a>
+          <h4 class="footer__subtitle">Contact</h4>
+          <p class="footer__description">
+            <span>Address:</span> 13 Tlemcen Road, Street 32, Beb-Wahren
+          </p>
+          <p class="footer__description">
+            <span>Phone:</span> +01 2222 365 /(+91) 01 2345 6789
+          </p>
+          <p class="footer__description">
+            <span>Hours:</span> 10:00 - 18:00, Mon - Sat
+          </p>
+          <div class="footer__social">
+            <h4 class="footer__subtitle">Follow Me</h4>
+            <div class="footer__links flex">
+              <a href="#">
+                <img
+                  src="./assets/img/icon-facebook.svg"
+                  alt=""
+                  class="footer__social-icon"
+                />
+              </a>
+              <a href="#">
+                <img
+                  src="./assets/img/icon-twitter.svg"
+                  alt=""
+                  class="footer__social-icon"
+                />
+              </a>
+              <a href="#">
+                <img
+                  src="./assets/img/icon-instagram.svg"
+                  alt=""
+                  class="footer__social-icon"
+                />
+              </a>
+              <a href="#">
+                <img
+                  src="./assets/img/icon-pinterest.svg"
+                  alt=""
+                  class="footer__social-icon"
+                />
+              </a>
+              <a href="#">
+                <img
+                  src="./assets/img/icon-youtube.svg"
+                  alt=""
+                  class="footer__social-icon"
+                />
+              </a>
+            </div>
+          </div>
+        </div>
+        <div class="footer__content">
+          <h3 class="footer__title">Address</h3>
+          <ul class="footer__links" style="padding-left: 0rem;">
+            <li><a href="#" class="footer__link">About Us</a></li>
+            <li><a href="#" class="footer__link">Delivery Information</a></li>
+            <li><a href="#" class="footer__link">Privacy Policy</a></li>
+            <li><a href="#" class="footer__link">Terms & Conditions</a></li>
+            <li><a href="#" class="footer__link">Contact Us</a></li>
+            <li><a href="#" class="footer__link">Support Center</a></li>
+          </ul>
+        </div>
+        <div class="footer__content">
+          <h3 class="footer__title">My Account</h3>
+          <ul class="footer__links" style="padding-left: 0rem;">
+            <li><a href="#" class="footer__link">Sign In</a></li>
+            <li><a href="#" class="footer__link">View Cart</a></li>
+            <li><a href="#" class="footer__link">My Wishlist</a></li>
+            <li><a href="#" class="footer__link">Track My Order</a></li>
+            <li><a href="#" class="footer__link">Help</a></li>
+            <li><a href="#" class="footer__link">Order</a></li>
+          </ul>
+        </div>
+        <div class="footer__content">
+          <h3 class="footer__title">Certified By FSSAI</h3>
+          <img
+            src="{{ url_for('static', filename='./assets/img/fssai.png') }}"
+            alt=""
+            class="payment__img"
+          />
+        </div>
+      </div>
+      <div class="footer__bottom">
+        <p class="copyright">&copy; 2024 Evara. All right reserved</p>
+        <span class="designer">Designer by Crypticalcoder</span>
+      </div>
+    </footer>
+
+    <!--=============== SWIPER JS ===============-->
+    <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+
+    <!--=============== MAIN JS ===============-->
+    <script src="{{ url_for('static', filename='assets/js/main.js') }} "></script>
+<script>
+  const ball = document.getElementById('ball');
+  const path = document.getElementById('thePath');
+  const glitterContainer = document.getElementById('glitter-container');
+  const pathLength = path.getTotalLength();
+
+  path.style.strokeDasharray = pathLength;
+  path.style.strokeDashoffset = pathLength;
+
+  let currentBallX = 0;
+  let currentBallY = 0;
+
+  function createGlitter(x, y) {
+    const glitterCount = 10;
+
+    for (let i = 0; i < glitterCount; i++) {
+      const glitter = document.createElement('div');
+      glitter.className = 'glitter';
+
+      const angle = Math.random() * 2 * Math.PI;
+      const distance = Math.random() * 30 + 10;
+      const dx = Math.cos(angle) * distance;
+      const dy = Math.sin(angle) * distance;
+
+      glitter.style.left = `${x - 35}px`;
+      glitter.style.top = `${y - 1610}px`;
+      glitter.style.setProperty('--dx', `${dx}px`);
+      glitter.style.setProperty('--dy', `${dy}px`);
+
+      glitterContainer.appendChild(glitter);
+      setTimeout(() => glitter.remove(), 1000);
+    }
+  }
+
+function updateBallPosition() {
+  if (window.innerWidth <= 768) {
+    ball.style.display = 'none';
+    path.style.strokeDashoffset = pathLength;
+    return;
+  }
+
+  ball.style.display = 'block';
+
+  const scrollTop = window.scrollY || document.documentElement.scrollTop;
+  const startScroll = 1300; // <-- Animation starts after 1000px scroll
+  const maxScroll = document.body.scrollHeight - window.innerHeight;
+  const speedMultiplier = 2;
+
+  // Prevent scrollPercent from going negative
+  const effectiveScroll = Math.max(scrollTop - startScroll, 0);
+
+  const scrollPercent = Math.min(
+  (effectiveScroll / (maxScroll - startScroll)) * speedMultiplier,1);
+
+
+  const drawLength = scrollPercent * pathLength;
+  path.style.strokeDashoffset = pathLength - drawLength;
+
+  const point = path.getPointAtLength(drawLength);
+  const svgOffsetTop = document.querySelector('.svg-path').getBoundingClientRect().top + window.scrollY;
+  const ballX = point.x + 185;
+  const ballY = point.y + svgOffsetTop + 15;
+  ball.style.left = `${ballX - ball.offsetWidth / 2 - 20}px`;
+  ball.style.top = `${ballY - ball.offsetHeight / 2 - 1600}px`;
+
+  currentBallX = ballX;
+  currentBallY = ballY;
+
+  createGlitter(ballX, ballY);
+}
+
+
+  let glitterInterval = null;
+
+  function handleResponsiveEffects() {
+    if (window.innerWidth > 768) {
+      updateBallPosition();
+      if (!glitterInterval) {
+        glitterInterval = setInterval(() => {
+          createGlitter(currentBallX, currentBallY);
+        }, 300);
+      }
+    } else {
+      ball.style.display = 'none';
+      clearInterval(glitterInterval);
+      glitterInterval = null;
+    }
+  }
+
+  window.addEventListener('scroll', updateBallPosition);
+  window.addEventListener('resize', handleResponsiveEffects);
+  window.addEventListener('load', handleResponsiveEffects);
+</script>
+<script>
+    window.addEventListener('scroll', () => {
+      document.querySelectorAll('.animate-on-scroll').forEach(section => {
+        const rect = section.getBoundingClientRect();
+        if (rect.top < window.innerHeight - 100) {
+          section.style.opacity = '1';
+          section.style.transform = 'translateY(0)';
+        }
+      });
+    });
+
+    window.dispatchEvent(new Event('scroll'));
+    // Optional: Hover scale effect
+    document.querySelectorAll('[style*="transition:transform"]').forEach(el => {
+      el.addEventListener('mouseover', () => el.style.transform = 'scale(1.05)');
+      el.addEventListener('mouseout', () => el.style.transform = 'scale(1)');
+    });
+  </script>
+
+    <script src="{{ url_for('static', filename='assets/js/main.js') }} "></script>
+
+</body>
+</html>

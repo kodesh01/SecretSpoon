@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Edit Category</title>
+  <link href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700&family=Spartan:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --first-color: hsl(176, 88%, 27%);
+      --first-color-alt: hsl(129, 44%, 94%);
+      --body-font: 'Lato', sans-serif;
+    }
+
+    body {
+      font-family: var(--body-font);
+      background-color: var(--first-color-alt);
+      padding: 2rem;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+    }
+
+    form {
+      background-color: white;
+      padding: 2rem;
+      border-radius: 10px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+      max-width: 500px;
+      width: 100%;
+    }
+
+    h2 {
+      text-align: center;
+      color: var(--first-color);
+    }
+
+    label {
+      display: block;
+      margin-top: 1rem;
+      font-weight: bold;
+    }
+
+    input[type="text"],
+    input[type="file"],
+    input[type="submit"] {
+      width: 100%;
+      padding: 10px;
+      margin-top: 0.5rem;
+      border: 1px solid var(--first-color);
+      border-radius: 5px;
+    }
+
+    input[type="submit"] {
+      background-color: var(--first-color);
+      color: white;
+      font-weight: bold;
+      cursor: pointer;
+      margin-top: 1.5rem;
+    }
+
+    img {
+      margin-top: 1rem;
+      max-width: 100%;
+      height: auto;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+    }
+  </style>
+</head>
+<body>
+  <form method="POST" enctype="multipart/form-data">
+    <h2>Edit Category</h2>
+    <label for="name">Name:</label>
+    <input type="text" name="name" value="{{ category['name'] }}" required>
+
+    <label>Current Image:</label>
+    <img src="{{ url_for('static', filename='assets/img/' + category['image_url']) }}" alt="Current Category Image">
+
+    <label for="image">Upload New Image:</label>
+    <input type="file" name="image" id="image" accept="image/*">
+
+    <input type="submit" value="Update">
+  </form>
+</body>
+</html>
