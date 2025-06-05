@@ -443,8 +443,8 @@ def delete_product_detail(product_id):
     conn.close()
     return redirect(url_for('admin'))
 
-if __name__ == '__main__':
-    app.run(debug=True)
+# if __name__ == '__main__':
+#     app.run(debug=True)
 
 
 # from flask import Flask, render_template ,request
