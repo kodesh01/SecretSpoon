@@ -3,92 +3,198 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
     <!--=============== FLATICON ===============-->
     <link
       rel="stylesheet"
       href="https://cdn-uicons.flaticon.com/2.0.0/uicons-regular-straight/css/uicons-regular-straight.css"
     />
-
     <!--=============== SWIPER CSS ===============-->
     <link
       rel="stylesheet"
       href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css"
     />
       <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='assets/img/icon.png') }}">
-
-
     <!--=============== CSS ===============-->
     <link rel="stylesheet" href="{{ url_for('static', filename='./assets/css/styles.css') }}" />
-
     <title>Ecommerce Website</title>
+    <style>
+      .custom-alert {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  background-color: #4CAF50;
+  color: white;
+  padding: 14px 20px;
+  border-radius: 6px;
+  font-size: 14px;
+  z-index: 9999;
+  display: none;
+  animation: fadeInOut 4s ease forwards;
+}
+
+.btn--cancel {
+  background-color: #f44336;
+  border: none;
+  padding: 6px 12px;
+  color: white;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+@keyframes fadeInOut {
+  0% { opacity: 0; transform: translateY(-10px); }
+  10%, 90% { opacity: 1; transform: translateY(0); }
+  100% { opacity: 0; transform: translateY(-10px); }
+}
+
+    </style>
+    <style>
+.modal-overlay {
+  display: none;
+  position: fixed;
+  top: 0; left: 0;
+  width: 100vw; height: 100vh;
+  background: rgba(0, 0, 0, 0.5); /* blur effect */
+  backdrop-filter: blur(5px);
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal-box {
+  background: white;
+  padding: 20px 30px;
+  border-radius: 8px;
+  text-align: center;
+  max-width: 300px;
+}
+
+.modal-actions {
+  margin-top: 20px;
+  display: flex;
+  justify-content: space-between;
+}
+
+.btn--danger {
+  background-color: #f44336;
+  color: white;
+  border: none;
+  padding: 8px 15px;
+  border-radius: 4px;
+}
+
+.btn--secondary {
+  background-color: #ccc;
+  border: none;
+  padding: 8px 15px;
+  border-radius: 4px;
+
+}
+  .btn--cancel {
+    background-color: #e53935;
+    color: white;
+    padding: 6px 12px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+
+  .btn--cancel:hover {
+    background-color: #c62828;
+  }
+
+  .disabled-btn {
+    background-color: #ccc !important;
+    color: #666 !important;
+    cursor: not-allowed !important;
+    pointer-events: none !important;
+  }
+</style>
+
   </head>
   <body>
     <!--=============== HEADER ===============-->
-    <header class="header">
+        <header class="header">
       <div class="header__top">
         <div class="header__container container">
           <div class="header__contact">
-            <span>(+01) - 2345 - 6789</span>
-            <span>Our location</span>
+            <span>(+91) - 9894151801</span>
+            {% if lang == 'ta' %}
+            <span>வடக்கன்குளம், திருநெல்வேலி</span>
+            {% else %}
+              <span>Vadakkankulam ,Tirunelveli </span>
+            {% endif %}
           </div>
-          <p class="header__alert-news">
+          <!-- <p class="header__alert-news">
             Super Values Deals - Save more coupons
-          </p>
-          <a href="login-register.html" class="header__top-action">
-            Log In / Sign Up
-          </a>
+          </p> -->
+          <form method="POST" action="/set-language" class="header__top-action">
+          <select name="language" onchange="this.form.submit()" style="border: none; background: transparent; font-size: 1rem; color: inherit;">
+            <option value="en" {{ 'selected' if session.get('lang') == 'en' else '' }}>English</option>
+            <option value="ta" {{ 'selected' if session.get('lang') == 'ta' else '' }}>தமிழ்</option>
+          </select>
+        </form>
         </div>
       </div>
-
       <nav class="nav container">
-        <a href="index.html" class="nav__logo">
-          <img
-            class="nav__logo-img"
-            src="{{ url_for('static', filename='assets/img/logo.svg') }}"
-            alt="website logo"
-          />
+        <a href="/" class="nav__logo">
+          <img src="{{ url_for('static', filename='assets/img/logo.png') }}" alt="Logo" class="nav__logo-img" >
         </a>
         <div class="nav__menu" id="nav-menu">
+          <div class="nav__menu-top">
+            <a href="/" class="nav__menu-logo">
+              <img src="{{ url_for('static', filename='assets/img/logo.png') }}" alt="">
+            </a>
+            <div class="nav__close" id="nav-close">
+              <i class="fi fi-rs-cross-small"></i>
+            </div>
+          </div>
           <ul class="nav__list">
             <li class="nav__item">
-              <a href="index.html" class="nav__link">Home</a>
+              <a href="/" class="nav__link ">Home</a>
             </li>
             <li class="nav__item">
-              <a href="shop.html" class="nav__link">Shop</a>
+              <a href="shop" class="nav__link">Shop</a>
             </li>
             <li class="nav__item">
-              <a href="accounts.html" class="nav__link active-link"
-                >My Account</a
-              >
+              <a href="/story" class="nav__link">Story</a>
             </li>
             <li class="nav__item">
-              <a href="compare.html" class="nav__link">Compare</a>
+              <a href="/contact" class="nav__link">Contact Us</a>
             </li>
+           {% if user %}
             <li class="nav__item">
-              <a href="login-register.html" class="nav__link">Login</a>
+              <a href="/account" class="nav__link active-link">My Account</a>
             </li>
+          {% else %}
+            <li class="nav__item">
+              <a href="/user_login" class="nav__link active-link">Login</a>
+            </li>
+          {% endif %}
+            
           </ul>
-          <div class="header__search">
+          <!-- <div class="header__search">
             <input
               type="text"
               placeholder="Search For Items..."
               class="form__input"
             />
             <button class="search__btn">
-              <img src="{{ url_for('static', filename='assets/img/search.png') }}" alt="search icon" />
+              <img src="{{ url_for('static', filename='assets/img/search.png') }} " alt="search icon" />
             </button>
-          </div>
+          </div> -->
         </div>
         <div class="header__user-actions">
-          <a href="wishlist.html" class="header__action-btn" title="Wishlist">
-            <img src="{{ url_for('static', filename='assets/img/icon-heart.svg') }}" alt="" />
+          <!-- <a href="wishlist.html" class="header__action-btn" title="Wishlist">
+            <img src=" {{ url_for('static', filename='assets/img/icon-heart.svg') }}" alt="" />
             <span class="count">3</span>
+          </a> -->
+          <a href="/cart" class="header__action-btn" title="Cart">
+            <img src=" {{ url_for('static', filename='assets/img/icon-cart.svg') }}" alt="" />
           </a>
-          <a href="cart.html" class="header__action-btn" title="Cart">
-            <img src="{{ url_for('static', filename='assets/img/icon-cart.svg') }}" alt="" />
-            <span class="count">3</span>
-          </a>
+          <div class="header__action-btn nav__toggle" id="nav-toggle">
+            <img src="{{ url_for('static', filename='/assets/img/menu-burger.svg') }} " alt="">
+          </div>
         </div>
       </nav>
     </header>
@@ -98,13 +204,24 @@
       <!--=============== BREADCRUMB ===============-->
       <section class="breadcrumb">
         <ul class="breadcrumb__list flex container">
-          <li><a href="index.html" class="breadcrumb__link">Home</a></li>
+          <li><a href="/" class="breadcrumb__link">Home</a></li>
           <li><span class="breadcrumb__link">></span></li>
           <li><span class="breadcrumb__link">Account</span></li>
         </ul>
       </section>
-
       <!--=============== ACCOUNTS ===============-->
+      <div id="confirmModal" class="modal-overlay">
+  <div class="modal-box">
+    <p>Are you sure you want to cancel this order?</p>
+    <div class="modal-actions">
+      <button id="confirmCancelBtn" class="btn--danger">Yes, Cancel</button>
+      <button id="closeModalBtn" class="btn--secondary">No</button>
+    </div>
+  </div>
+</div>
+
+      <div id="customAlert" class="custom-alert"></div>
+
       <section class="accounts section--lg">
         <div class="accounts__container container grid">
           <div class="account__tabs">
@@ -123,11 +240,15 @@
             <p class="account__tab" data-target="#change-password">
               <i class="fi fi-rs-settings-sliders"></i> Change Password
             </p>
-            <p class="account__tab"><i class="fi fi-rs-exit"></i> Logout</p>
+            <p class="account__tab" onclick="window.location.href='/user_logout'">
+            <i class="fi fi-rs-exit"></i> Logout
+          </p>
+
           </div>
           <div class="tabs__content">
             <div class="tab__content active-tab" content id="dashboard">
-              <h3 class="tab__header">Hello Rosie</h3>
+              <h3 class="tab__header">Hello {{ user.username }}</h3>
+
               <div class="tab__body">
                 <p class="tab__description">
                   From your account dashboard. you can easily check & view your
@@ -143,108 +264,154 @@
                   <thead>
                     <tr>
                       <th>Orders</th>
+                      <th>Pruduct</th>
                       <th>Date</th>
                       <th>Status</th>
                       <th>Totals</th>
-                      <th>Actions</th>
+                      <th>Cancel Order</th>
                     </tr>
                   </thead>
                   <tbody>
+                  {% if orders %}
+                    {% for order in orders %}
+                      <tr>
+                        <td>#{{ order.id }}</td>
+                        <td>#{{ order.title }}</td>
+                        <td>{{ order.order_date.strftime("%B %d, %Y") }}</td>
+                        <td>{{ order.status }}</td>
+                        <td>₹{{ "%.2f"|format(order.total_cost) }}</td>
+                        <td>
+                        {% if order.status == 'Shipped' or order.status == 'Delivered' %}
+                          <button class="btn--cancel disabled-btn" disabled onclick="return false;">Cancel</button>
+                        {% else %}
+                          <button onclick="cancelOrder({{ order.id }})" class="btn--cancel">Cancel</button>
+                        {% endif %}
+                      </td>
+
+                      </tr>
+                    {% endfor %}
+                  {% else %}
                     <tr>
-                      <td>#1357</td>
-                      <td>March 19, 2022</td>
-                      <td>Processing</td>
-                      <td>$125.00</td>
-                      <td><a href="#" class="view__order">View</a></td>
+                      <td colspan="5" style="text-align:center;">No orders placed yet.</td>
                     </tr>
-                    <tr>
-                      <td>#2468</td>
-                      <td>June 29, 2022</td>
-                      <td>Completed</td>
-                      <td>$364.00</td>
-                      <td><a href="#" class="view__order">View</a></td>
-                    </tr>
-                    <tr>
-                      <td>#2366</td>
-                      <td>August 02, 2022</td>
-                      <td>Completed</td>
-                      <td>$280.00</td>
-                      <td><a href="#" class="view__order">View</a></td>
-                    </tr>
-                  </tbody>
+                  {% endif %}
+                </tbody>
                 </table>
               </div>
             </div>
             <div class="tab__content" content id="update-profile">
-              <h3 class="tab__header">Update Profile</h3>
-              <div class="tab__body">
-                <form class="form grid">
-                  <input
-                    type="text"
-                    placeholder="Username"
-                    class="form__input"
-                  />
-                  <div class="form__btn">
-                    <button class="btn btn--md">Save</button>
-                  </div>
-                </form>
-              </div>
+            <h3 class="tab__header">Update Profile</h3>
+            <div class="tab__body">
+              <form class="form grid" action="{{ url_for('update_profile') }}" method="POST">
+                <input
+                  type="text"
+                  name="username"
+                  class="form__input"
+                  required
+                  value="{{ user.username }}"
+                  placeholder="Username"
+                />
+
+                <input
+                  type="text"
+                  name="mobile"
+                  class="form__input"
+                  required
+                  value="{{ user.mobile }}"
+                  placeholder="Mobile Number"
+                />
+
+                <input
+                  type="email"
+                  name="email"
+                  class="form__input"
+                  value="{{ user.email }}"
+                  placeholder="Email"
+                  readonly
+                  style="background-color:#eee; cursor: not-allowed;"
+                />
+
+                <div class="form__btn">
+                  <button class="btn btn--md" type="submit">Save</button>
+                </div>
+              </form>
             </div>
-            <div class="tab__content" content id="address">
-              <h3 class="tab__header">Shipping Address</h3>
-              <div class="tab__body">
-                <address class="address">
-                  3522 Interstate <br />
-                  75 Business Spur, <br />
-                  Sault Ste. <br />
-                  Marie, Mi 49783
-                </address>
-                <p class="city">New York</p>
-                <a href="#" class="edit">Edit</a>
-              </div>
+          </div>
+
+        <div class="tab__content" content id="address">
+        <h3 class="tab__header">Shipping Address</h3>
+        <div class="tab__body">
+          <address class="address">
+            {{ user.address_line }}<br />
+            {{ user.city }}<br />
+            {{ user.state }}<br />
+            {{ user.pincode }}
+          </address>
+          <p class="city">{{ user.city }}</p>
+          <a href="#" class="edit" onclick="document.getElementById('edit-address-form').style.display='block'">Edit</a>
+
+          <form id="edit-address-form" class="form grid" method="POST" action="/update-address" style="display: none;">
+            <input type="text" name="address_line" placeholder="Address" class="form__input" required value="{{ user.address_line }}">
+            <input type="text" name="city" placeholder="City" class="form__input" required value="{{ user.city }}">
+            <input type="text" name="state" placeholder="State" class="form__input" required value="{{ user.state }}">
+            <input type="text" name="pincode" placeholder="Pincode" class="form__input" required value="{{ user.pincode }}">
+
+            <div class="form__btn">
+              <button type="submit" class="btn btn--md">Save</button>
             </div>
-            <div class="tab__content" content id="change-password">
-              <h3 class="tab__header">Change Password</h3>
-              <div class="tab__body">
-                <form class="form grid">
-                  <input
-                    type="password"
-                    placeholder="Current Password"
-                    class="form__input"
-                  />
-                  <input
-                    type="password"
-                    placeholder="New Password"
-                    class="form__input"
-                  />
-                  <input
-                    type="password"
-                    placeholder="Confirm Password"
-                    class="form__input"
-                  />
-                  <div class="form__btn">
-                    <button class="btn btn--md">Save</button>
-                  </div>
-                </form>
-              </div>
-            </div>
+          </form>
+        </div>
+      </div>
+
+         <div class="tab__content" content id="change-password">
+  <h3 class="tab__header">Change Password</h3>
+  <div class="tab__body">
+    <form class="form grid" id="changePasswordForm">
+      <input
+        type="password"
+        name="current_password"
+        placeholder="Current Password"
+        class="form__input"
+        required
+      />
+      <input
+        type="password"
+        name="new_password"
+        placeholder="New Password"
+        class="form__input"
+        required
+      />
+      <input
+        type="password"
+        name="confirm_password"
+        placeholder="Confirm Password"
+        class="form__input"
+        required
+      />
+      <div class="form__btn">
+        <button type="submit" class="btn btn--md">Save</button>
+      </div>
+    </form>
+  </div>
+</div>
+
           </div>
         </div>
       </section>
 
       <!--=============== NEWSLETTER ===============-->
-      <section class="newsletter section">
+      <section class="newsletter section home__newsletter">
         <div class="newsletter__container container grid">
-          <h3 class="newsletter__title flex">
+          <!-- <h3 class="newsletter__title flex">
             <img
-              src="./assets/img/icon-email.svg"
+              src="{{ url_for('static', filename='./assets/img/icon-email.svg') }}"
               alt=""
               class="newsletter__icon"
             />
             Sign in to Newsletter
           </h3>
           <p class="newsletter__description">
-            ...and receive $25 coupon for first shopping.
+            ...and receive ₹25 coupon for first shopping.
           </p>
           <form action="" class="newsletter__form">
             <input
@@ -253,24 +420,23 @@
               class="newsletter__input"
             />
             <button type="submit" class="newsletter__btn">Subscribe</button>
-          </form>
+          </form> -->
         </div>
       </section>
     </main>
-
     <!--=============== FOOTER ===============-->
     <footer class="footer container">
       <div class="footer__container grid">
         <div class="footer__content">
           <a href="index.html" class="footer__logo">
-            <img src="./assets/img/logo.svg" alt="" class="footer__logo-img" />
+            <img src="{{ url_for('static', filename='assets/img/logo.png') }}" alt="" class="footer__logo-img" />
           </a>
           <h4 class="footer__subtitle">Contact</h4>
           <p class="footer__description">
-            <span>Address:</span> 13 Tlemcen Road, Street 32, Beb-Wahren
+            <span>Address:</span> Vadakkankulam ,Tirunelveli, Tamilnadu 
           </p>
           <p class="footer__description">
-            <span>Phone:</span> +01 2222 365 /(+91) 01 2345 6789
+            <span>Phone:</span> +91 9894151801 /(+91) 9894463310
           </p>
           <p class="footer__description">
             <span>Hours:</span> 10:00 - 18:00, Mon - Sat
@@ -278,37 +444,37 @@
           <div class="footer__social">
             <h4 class="footer__subtitle">Follow Me</h4>
             <div class="footer__links flex">
-              <a href="#">
+              <!-- <a href="#">
                 <img
                   src="./assets/img/icon-facebook.svg"
                   alt=""
                   class="footer__social-icon"
                 />
-              </a>
-              <a href="#">
+              </a> -->
+              <!-- <a href="#">
                 <img
                   src="./assets/img/icon-twitter.svg"
                   alt=""
                   class="footer__social-icon"
                 />
-              </a>
-              <a href="#">
+              </a> -->
+              <a href="https://www.instagram.com/secret_spoon_official/">
                 <img
-                  src="./assets/img/icon-instagram.svg"
+                  src="{{ url_for('static', filename='./assets/img/icon-instagram.svg') }}"
                   alt=""
                   class="footer__social-icon"
                 />
               </a>
-              <a href="#">
+              <!-- <a href="#">
                 <img
                   src="./assets/img/icon-pinterest.svg"
                   alt=""
                   class="footer__social-icon"
                 />
-              </a>
+              </a> -->
               <a href="#">
                 <img
-                  src="./assets/img/icon-youtube.svg"
+                  src="{{ url_for('static', filename='./assets/img/icon-youtube.svg') }}"
                   alt=""
                   class="footer__social-icon"
                 />
@@ -318,43 +484,100 @@
         </div>
         <div class="footer__content">
           <h3 class="footer__title">Address</h3>
-          <ul class="footer__links">
-            <li><a href="#" class="footer__link">About Us</a></li>
-            <li><a href="#" class="footer__link">Delivery Information</a></li>
-            <li><a href="#" class="footer__link">Privacy Policy</a></li>
-            <li><a href="#" class="footer__link">Terms & Conditions</a></li>
-            <li><a href="#" class="footer__link">Contact Us</a></li>
+          <ul class="footer__links" style="padding-left: 0rem;">
+            <li><a href="/story" class="footer__link">About Us</a></li>
+            <li><a href="/account" class="footer__link">Delivery Information</a></li>
+            <!-- <li><a href="#" class="footer__link">Privacy Policy</a></li> -->
+            <!-- <li><a href="#" class="footer__link">Terms & Conditions</a></li> -->
+            <li><a href="/contact" class="footer__link">Contact Us</a></li>
             <li><a href="#" class="footer__link">Support Center</a></li>
           </ul>
         </div>
         <div class="footer__content">
           <h3 class="footer__title">My Account</h3>
-          <ul class="footer__links">
-            <li><a href="#" class="footer__link">Sign In</a></li>
-            <li><a href="#" class="footer__link">View Cart</a></li>
-            <li><a href="#" class="footer__link">My Wishlist</a></li>
-            <li><a href="#" class="footer__link">Track My Order</a></li>
-            <li><a href="#" class="footer__link">Help</a></li>
-            <li><a href="#" class="footer__link">Order</a></li>
+          <ul class="footer__links" style="padding-left: 0rem;">
+            <li><a href="/user_login" class="footer__link">Sign In</a></li>
+            <li><a href="/cart" class="footer__link">View Cart</a></li>
+            <!-- <li><a href="#" class="footer__link">My Wishlist</a></li> -->
+            <!-- <li><a href="/account" class="footer__link">Track My Order</a></li> -->
+            <li><a href="/contact" class="footer__link">Help</a></li>
+            <li><a href="/account" class="footer__link">Order</a></li>
           </ul>
         </div>
         <div class="footer__content">
-          <h3 class="footer__title">Secured Payed Gateways</h3>
+          <h3 class="footer__title">Certified By FSSAI</h3>
           <img
-            src="./assets/img/payment-method.png"
+            src="{{ url_for('static', filename='./assets/img/fssai.png') }}"
             alt=""
             class="payment__img"
           />
         </div>
       </div>
       <div class="footer__bottom">
-        <p class="copyright">&copy; 2024 Evara. All right reserved</p>
-        <span class="designer">Designer by Crypticalcoder</span>
+        <p class="copyright">&copy; 2025 SecretSpoon. All right reserved</p>
+        <span class="designer">Designed & Developed by Tecko </span>
       </div>
     </footer>
 
     <!--=============== SWIPER JS ===============-->
     <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+      <script>
+    document.getElementById("changePasswordForm").addEventListener("submit", async function (e) {
+      e.preventDefault();
+      const formData = new FormData(this);
+
+      const response = await fetch("/change-password", {
+        method: "POST",
+        body: formData,
+      });
+      const result = await response.json();
+      alert(result.message);
+      if (result.status === "success") {
+        this.reset();
+      }
+    });
+  </script>
+  <script>
+  let selectedOrderId = null;
+
+  async function cancelOrder(orderId) {
+    selectedOrderId = orderId;
+    document.getElementById("confirmModal").style.display = "flex";
+  }
+
+  document.getElementById("confirmCancelBtn").addEventListener("click", async function () {
+    const response = await fetch(`/cancel-order/${selectedOrderId}`, {
+      method: "POST"
+    });
+
+    const result = await response.json();
+    showAlert(result.message, result.status);
+
+    document.getElementById("confirmModal").style.display = "none";
+
+    if (result.status === "success") {
+      location.reload(); // Refresh orders table
+    }
+  });
+
+  document.getElementById("closeModalBtn").addEventListener("click", function () {
+    document.getElementById("confirmModal").style.display = "none";
+  });
+
+  function showAlert(message, type = "success") {
+    const alertBox = document.getElementById("customAlert");
+    alertBox.innerText = message;
+    alertBox.style.backgroundColor = type === "success" ? "#4CAF50" : "#f44336";
+    alertBox.style.display = "block";
+
+    setTimeout(() => {
+      alertBox.style.display = "none";
+    }, 4000);
+  }
+</script>
+
+  
+
 
     <!--=============== MAIN JS ===============-->
     <script src="{{ url_for('static', filename='assets/js/main.j') }}s"></script>

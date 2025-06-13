@@ -18,8 +18,6 @@ shop_products_data = [
     ("Colorful Pattern Shirt", "Clothing", "assets/img/product-1-1.jpg", "assets/img/product-1-2.jpg", 238.85, 245.8, "Hot", "light-pink"),
     ("Another Shirt", "Clothing", "assets/img/product-2-1.jpg", "assets/img/product-2-2.jpg", 199, 210, "Hot", "light-green")
 ]
-
-
 # Create and connect to the DB
 conn = sqlite3.connect("shop_data.db")
 cursor = conn.cursor()

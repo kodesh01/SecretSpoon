@@ -4,8 +4,6 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
       <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='assets/img/icon.png') }}">
-
-
     <!--=============== FLATICON ===============-->
     <link
       rel="stylesheet"
@@ -63,17 +61,24 @@
               <a href="/" class="nav__link ">Home</a>
             </li>
             <li class="nav__item">
-              <a href="shop" class="nav__link active-link">Shop</a>
+              <a href="shop" class="nav__link">Shop</a>
             </li>
             <li class="nav__item">
-              <a href="/story" class="nav__link">Story</a>
+              <a href="/story" class="nav__link  active-link  ">Story</a>
             </li>
             <li class="nav__item">
-              <a href="/contact" class="nav__link">Contact Us</a>
+              <a href="/contact" class="nav__link ">Contact Us</a>
             </li>
-            <!-- <li class="nav__item">
-              <a href="login-register.html" class="nav__link">Login</a>
-            </li> -->
+           {% if user %}
+            <li class="nav__item">
+              <a href="/account" class="nav__link ">My Account</a>
+            </li>
+          {% else %}
+            <li class="nav__item">
+              <a href="/user_login" class="nav__link ">Login</a>
+            </li>
+          {% endif %}
+            
           </ul>
           <!-- <div class="header__search">
             <input
@@ -107,13 +112,25 @@
         <ul class="breadcrumb__list flex container">
           <li><a href="/" class="breadcrumb__link">Home</a></li>
           <li><span class="breadcrumb__link"></span>></li>
-          <li><span class="breadcrumb__link">Shop</span></li>
+          <li><span class="breadcrumb__link">Shop</span></li> 
           <li><span class="breadcrumb__link"></span>></li>
           <li><span class="breadcrumb__link">Cart</span></li>
         </ul>
       </section>
       <!--=============== CART ===============-->
       <section class="cart section--lg container">
+        <div id="customModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; 
+     background-color: rgba(0,0,0,0.6); z-index:1000; justify-content:center; align-items:center;">
+  <div style="background:#fff3e0; padding:20px 30px; border-radius:10px; max-width:400px; box-shadow:0 5px 15px rgba(0,0,0,0.3); text-align:center;">
+    <h3 style="color:#ef6c00;">Login Required</h3>
+    <p style="margin: 10px 0;">To place an order, you must log in first.</p>
+    <div style="margin-top:20px;">
+      <button id="confirmLogin" style="background-color:#ef6c00; color:white; border:none; padding:10px 20px; margin-right:10px; border-radius:5px;">Login Now</button>
+      <button id="cancelLogin" style="background-color:#eee; color:#333; border:none; padding:10px 20px; border-radius:5px;">Cancel</button>
+    </div>
+  </div>
+</div>
+</div>
   <div class="table__container">
     <table class="table">
       <thead>
@@ -140,9 +157,6 @@
       <i class="fi-rs-shopping-bag"></i> Continue Shopping
     </a>
   </div>
-
- 
-
   <div class="divider">
     <i class="fi fi-rs-fingerprint"></i>
   </div>
@@ -209,7 +223,12 @@
       <td><span id="cart-total" class="cart__total-price"></span></td>
     </tr>
   </table>
-  <a href="#" class="btn flex btn--md" onclick="sendOrderToWhatsApp()">
+  <a href="#" id="buy-now-btn" class="btn flex btn--md">
+  <i class="fi fi-rs-box-alt"></i> Buy Now
+</a>
+
+
+<a href="#" style="margin-top: 5px;" class="btn flex btn--md" onclick="sendOrderToWhatsApp()">
   <i class="fi fi-rs-box-alt"></i> Send Order via WhatsApp
 </a>
 
@@ -219,18 +238,18 @@
       </section>
 
       <!--=============== NEWSLETTER ===============-->
-      <section class="newsletter section">
+      <section class="newsletter section home__newsletter">
         <div class="newsletter__container container grid">
-          <h3 class="newsletter__title flex">
+          <!-- <h3 class="newsletter__title flex">
             <img
-              src="./assets/img/icon-email.svg"
+              src="{{ url_for('static', filename='./assets/img/icon-email.svg') }}"
               alt=""
               class="newsletter__icon"
             />
             Sign in to Newsletter
           </h3>
           <p class="newsletter__description">
-            ...and receive $25 coupon for first shopping.
+            ...and receive ₹25 coupon for first shopping.
           </p>
           <form action="" class="newsletter__form">
             <input
@@ -239,11 +258,10 @@
               class="newsletter__input"
             />
             <button type="submit" class="newsletter__btn">Subscribe</button>
-          </form>
+          </form> -->
         </div>
       </section>
     </main>
-
     <!--=============== FOOTER ===============-->
     <footer class="footer container">
       <div class="footer__container grid">
@@ -253,10 +271,10 @@
           </a>
           <h4 class="footer__subtitle">Contact</h4>
           <p class="footer__description">
-            <span>Address:</span> 13 Tlemcen Road, Street 32, Beb-Wahren
+            <span>Address:</span> Vadakkankulam ,Tirunelveli, Tamilnadu 
           </p>
           <p class="footer__description">
-            <span>Phone:</span> +01 2222 365 /(+91) 01 2345 6789
+            <span>Phone:</span> +91 9894151801 /(+91) 9894463310
           </p>
           <p class="footer__description">
             <span>Hours:</span> 10:00 - 18:00, Mon - Sat
@@ -264,37 +282,37 @@
           <div class="footer__social">
             <h4 class="footer__subtitle">Follow Me</h4>
             <div class="footer__links flex">
-              <a href="#">
+              <!-- <a href="#">
                 <img
                   src="./assets/img/icon-facebook.svg"
                   alt=""
                   class="footer__social-icon"
                 />
-              </a>
-              <a href="#">
+              </a> -->
+              <!-- <a href="#">
                 <img
                   src="./assets/img/icon-twitter.svg"
                   alt=""
                   class="footer__social-icon"
                 />
-              </a>
-              <a href="#">
+              </a> -->
+              <a href="https://www.instagram.com/secret_spoon_official/">
                 <img
-                  src="./assets/img/icon-instagram.svg"
+                  src="{{ url_for('static', filename='./assets/img/icon-instagram.svg') }}"
                   alt=""
                   class="footer__social-icon"
                 />
               </a>
-              <a href="#">
+              <!-- <a href="#">
                 <img
                   src="./assets/img/icon-pinterest.svg"
                   alt=""
                   class="footer__social-icon"
                 />
-              </a>
+              </a> -->
               <a href="#">
                 <img
-                  src="./assets/img/icon-youtube.svg"
+                  src="{{ url_for('static', filename='./assets/img/icon-youtube.svg') }}"
                   alt=""
                   class="footer__social-icon"
                 />
@@ -304,24 +322,24 @@
         </div>
         <div class="footer__content">
           <h3 class="footer__title">Address</h3>
-          <ul class="footer__links">
-            <li><a href="#" class="footer__link">About Us</a></li>
-            <li><a href="#" class="footer__link">Delivery Information</a></li>
-            <li><a href="#" class="footer__link">Privacy Policy</a></li>
-            <li><a href="#" class="footer__link">Terms & Conditions</a></li>
-            <li><a href="#" class="footer__link">Contact Us</a></li>
+          <ul class="footer__links" style="padding-left: 0rem;">
+            <li><a href="/story" class="footer__link">About Us</a></li>
+            <li><a href="/account" class="footer__link">Delivery Information</a></li>
+            <!-- <li><a href="#" class="footer__link">Privacy Policy</a></li> -->
+            <!-- <li><a href="#" class="footer__link">Terms & Conditions</a></li> -->
+            <li><a href="/contact" class="footer__link">Contact Us</a></li>
             <li><a href="#" class="footer__link">Support Center</a></li>
           </ul>
         </div>
         <div class="footer__content">
           <h3 class="footer__title">My Account</h3>
-          <ul class="footer__links">
-            <li><a href="#" class="footer__link">Sign In</a></li>
-            <li><a href="#" class="footer__link">View Cart</a></li>
-            <li><a href="#" class="footer__link">My Wishlist</a></li>
-            <li><a href="#" class="footer__link">Track My Order</a></li>
-            <li><a href="#" class="footer__link">Help</a></li>
-            <li><a href="#" class="footer__link">Order</a></li>
+          <ul class="footer__links" style="padding-left: 0rem;">
+            <li><a href="/user_login" class="footer__link">Sign In</a></li>
+            <li><a href="/cart" class="footer__link">View Cart</a></li>
+            <!-- <li><a href="#" class="footer__link">My Wishlist</a></li> -->
+            <!-- <li><a href="/account" class="footer__link">Track My Order</a></li> -->
+            <li><a href="/contact" class="footer__link">Help</a></li>
+            <li><a href="/account" class="footer__link">Order</a></li>
           </ul>
         </div>
         <div class="footer__content">
@@ -334,8 +352,8 @@
         </div>
       </div>
       <div class="footer__bottom">
-        <p class="copyright">&copy; 2024 Evara. All right reserved</p>
-        <span class="designer">Designer by Crypticalcoder</span>
+        <p class="copyright">&copy; 2025 SecretSpoon. All right reserved</p>
+        <span class="designer">Designed & Developed by Tecko </span>
       </div>
     </footer>
 
@@ -343,7 +361,51 @@
     <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
 
     <!--=============== MAIN JS ===============-->
-   <script>
+ <script>
+  document.getElementById("buy-now-btn").addEventListener("click", function (e) {
+    e.preventDefault();
+    let cart = JSON.parse(localStorage.getItem("cart")) || [];
+
+    cart = cart.map(item => {
+      item.unit = item.unit || "g";
+      return item;
+    });
+
+    if (cart.length === 0) {
+      alert("Your cart is empty.");
+      return;
+    }
+
+    fetch("/place_order_bulk", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ cart: cart })
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.status === "success") {
+        alert(data.message);
+        localStorage.removeItem("cart");
+        window.location.reload();
+      } else if (data.status === "redirect") {
+        showLoginPrompt(data.url);
+      } else {
+        alert(data.message || "Failed to place order.");
+      }
+    })
+    .catch(error => {
+      console.error("Bulk order error:", error);
+      alert("Error placing bulk order.");
+    });
+  });
+
+  function showLoginPrompt(loginUrl) {
+    const modal = document.getElementById("customModal");
+    modal.style.display = "flex";
+    document.getElementById("confirmLogin").onclick = () => window.location.href = loginUrl;
+    document.getElementById("cancelLogin").onclick = () => modal.style.display = "none";
+  }
+
   function loadCart() {
     const cart = JSON.parse(localStorage.getItem("cart")) || [];
     const tbody = document.getElementById("cart-items");
@@ -352,44 +414,66 @@
     let total = 0;
 
     cart.forEach((item, index) => {
-      const subtotal = (item.price / 1000) * item.quantity;
+      const unit = item.unit || "g";
+      const isKg = unit === "kg";
+      const isPcs = unit === "pcs";
+
+      // All quantities stored in grams or pcs
+      let quantity = item.quantity;
+      let displayQty = isKg ? (quantity / 1000) : quantity;
+      let displayUnit = isPcs ? "pcs" : (isKg ? "kg" : "g");
+
+      let subtotal = 0;
+      if (isPcs) {
+        subtotal = item.price * quantity;
+      } else {
+        // Convert grams to kg for price calculation
+        const qtyInKg = quantity / 1000;
+        subtotal = item.price * qtyInKg;
+      }
       total += subtotal;
 
-      if (tbody) {
-        const row = document.createElement("tr");
-        row.innerHTML = `
-          <td><img src="${item.image}" alt="${item.title}" class="table__img" /></td>
-          <td>
-            <h3 class="table__title">${item.title}</h3>
-            <p class="table__description">${item.description}</p>
-          </td>
-          <td><span class="table__price">₹${item.price}/kg</span></td>
-          <td>
-            <input type="number" value="${item.quantity}" class="quantity" min="1" onchange="updateQuantity(${index}, this.value)" />
-          </td>
-          <td><span class="subtotal">₹${subtotal}</span></td>
-          <td><i class="fi fi-rs-trash table__trash" onclick="removeItem(${index})"></i></td>
-        `;
-        tbody.appendChild(row);
-      }
+      const row = document.createElement("tr");
+      row.innerHTML = `
+        <td><img src="${item.image}" class="table__img" /></td>
+        <td>
+          <h3 class="table__title">${item.title}</h3>
+          <p class="table__description">${item.description}</p>
+        </td>
+        <td><span class="table__price">₹${item.price}/kg</span></td>
+        <td>
+          <input type="number" value="${displayQty}" min="1"
+            onchange="updateQuantity(${index}, this.value, '${unit}')"
+            class="quantity" />
+          <span>(${displayUnit})</span>
+        </td>
+        <td><span class="subtotal">₹${subtotal.toFixed(2)}</span></td>
+        <td><i class="fi fi-rs-trash table__trash" onclick="removeItem(${index})"></i></td>
+      `;
+      tbody.appendChild(row);
     });
 
-    // Update cart totals
-    const shippingCost = 10;
-    const totalAmount = total + shippingCost;
-
-    const subtotalEl = document.getElementById("cart-subtotal");
-    const shippingEl = document.getElementById("cart-shipping");
-    const totalEl = document.getElementById("cart-total");
-
-    if (subtotalEl) subtotalEl.innerText = `₹${total}`;
-    if (shippingEl) shippingEl.innerText = `₹${shippingCost}`;
-    if (totalEl) totalEl.innerText = `₹${totalAmount}`;
+    const shipping = 10;
+    document.getElementById("cart-subtotal").innerText = `₹${total.toFixed(2)}`;
+    document.getElementById("cart-shipping").innerText = `₹${shipping}`;
+    document.getElementById("cart-total").innerText = `₹${(total + shipping).toFixed(2)}`;
   }
 
-  function updateQuantity(index, value) {
+  function updateQuantity(index, value, unit) {
     const cart = JSON.parse(localStorage.getItem("cart")) || [];
-    cart[index].quantity = parseInt(value) || 1;
+    let updatedQty = 1;
+
+    if (unit === "kg") {
+      updatedQty = parseFloat(value) * 1000; // convert kg to g
+    } else if (unit === "g") {
+      updatedQty = parseInt(value);
+    } else if (unit === "pcs") {
+      updatedQty = parseInt(value);
+    }
+
+    cart[index].quantity = updatedQty;
+    cart[index].unit = unit;
+
     localStorage.setItem("cart", JSON.stringify(cart));
     loadCart();
   }
@@ -402,43 +486,9 @@
   }
 
   document.addEventListener("DOMContentLoaded", loadCart);
-  function sendOrderToWhatsApp() {
-    const cart = JSON.parse(localStorage.getItem("cart")) || [];
-    if (cart.length === 0) {
-      alert("Your cart is empty.");
-      return;
-    }
-
-    let message = "*🛒 New Order Received:*\n\n";
-    let total = 0;
-
-    cart.forEach((item, index) => {
-      const subtotal = (item.price / 1000) * item.quantity; // ₹ per gram
-      total += subtotal;
-
-      message += `*${index + 1}. ${item.title}*\n`;
-      message += `Description: ${item.description}\n`;
-      message += `Price: ₹${item.price}/kg\n`;
-      message += `Quantity: ${item.quantity}g\n`;
-      message += `Subtotal: ₹${subtotal.toFixed(2)}\n\n`;
-    });
-
-    const shipping = 10;
-    const grandTotal = total + shipping;
-
-    message += `*Subtotal:* ₹${total.toFixed(2)}\n`;
-    message += `*Shipping:* ₹${shipping}\n`;
-    message += `*Total:* ₹${grandTotal.toFixed(2)}\n\n`;
-    message += "_Please confirm this order._";
-
-    const encodedMessage = encodeURIComponent(message);
-    const phoneNumber = "9496392884"; // ✅ Replace with your WhatsApp number
-
-    const waLink = `https://wa.me/${phoneNumber}?text=${encodedMessage}`;
-    window.open(waLink, "_blank");
-  
-  }
 </script>
+
+
     <script src="{{ url_for('static', filename='assets/js/main.js') }}"></script>
   </body>
 </html>

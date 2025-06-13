@@ -64,17 +64,24 @@
               <a href="/" class="nav__link ">Home</a>
             </li>
             <li class="nav__item">
-              <a href="/shop" class="nav__link active-link">Shop</a>
+              <a href="shop" class="nav__link">Shop</a>
             </li>
             <li class="nav__item">
-              <a href="/story" class="nav__link">Story</a>
+              <a href="/story" class="nav__link  active-link">Story</a>
             </li>
             <li class="nav__item">
-              <a href="/contact" class="nav__link">Contact Us</a>
+              <a href="/contact" class="nav__link ">Contact Us</a>
             </li>
-            <!-- <li class="nav__item">
-              <a href="login-register.html" class="nav__link">Login</a>
-            </li> -->
+           {% if user %}
+            <li class="nav__item">
+              <a href="/account" class="nav__link ">My Account</a>
+            </li>
+          {% else %}
+            <li class="nav__item">
+              <a href="/user_login" class="nav__link ">Login</a>
+            </li>
+          {% endif %}
+            
           </ul>
           <!-- <div class="header__search">
             <input
@@ -115,7 +122,19 @@
         </ul>
       </section>
       <!--=============== DETAILS ===============-->
-      
+      <!-- Custom Confirmation Modal -->
+<div id="customModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; 
+     background-color: rgba(0,0,0,0.6); z-index:1000; justify-content:center; align-items:center;">
+  <div style="background:#fff3e0; padding:20px 30px; border-radius:10px; max-width:400px; box-shadow:0 5px 15px rgba(0,0,0,0.3); text-align:center;">
+    <h3 style="color:#ef6c00;">Login Required</h3>
+    <p style="margin: 10px 0;">To place an order, you must log in first.</p>
+    <div style="margin-top:20px;">
+      <button id="confirmLogin" style="background-color:#ef6c00; color:white; border:none; padding:10px 20px; margin-right:10px; border-radius:5px;">Login Now</button>
+      <button id="cancelLogin" style="background-color:#eee; color:#333; border:none; padding:10px 20px; border-radius:5px;">Cancel</button>
+    </div>
+  </div>
+</div>
+
 <section class="details section--lg">
   
   <div class="details__container container grid">
@@ -191,19 +210,32 @@
         </li>
       </ul>
 
-      <!-- Quantity and Buttons -->
-      <div class="details__action" style="display: flex; flex-direction: column; gap: 0.5rem;">
-        <label for="quantity" style="font-weight: 500; margin-bottom: 0.25rem;">Enter Quantity (grams):</label>
-        <input
-          type="number"
-          class="quantity"
-          id="quantity"
-          name="quantity"
-          value="250"
-          min="100"
-          step="50"
-          style="padding: 0.5rem; border: 1px solid #ccc; border-radius: 5px; width: 150px;"
-        />
+   <!-- Quantity and Buttons -->
+<div class="details__action" style="display: flex; flex-direction: column; gap: 0.5rem;">
+
+  <label for="quantity" style="font-weight: 500; margin-bottom: 0.25rem;">Enter Quantity:</label>
+
+  <!-- Input + Unit side-by-side -->
+  <div style="display: flex; gap: 0.5rem; align-items: center;">
+    <input
+      type="number"
+      class="quantity"
+      id="quantity"
+      name="quantity"
+      value="250"
+      min="100"
+      step="50"
+      style="padding: 0.5rem; border: 1px solid #ccc; border-radius: 5px; width: 150px;"
+    />
+    
+    <!-- Dropdown on the right -->
+    <select id="unit" style="padding: 0.5rem; border-radius: 5px; width: 60px; border: 1px solid #ccc;">
+      <option value="g">g</option>
+      <option value="kg">Kg</option>
+    </select>
+  </div>
+</div>
+
 
         <div style="margin-top: 1rem; display: flex; gap: 1rem; flex-wrap: wrap; justify-content: flex-start;">
           <a href="#"
@@ -234,20 +266,37 @@
             ">
             Enquire Now
           </a>
+          <a id="order-btn"
+   class="btn btn--sm"
+   style="
+     background-color: #2196F3;
+     color: white;
+     text-decoration: none;
+     border-radius: 4px;
+     text-align: center;
+     flex: 1 1 150px;
+     min-width: 120px;
+     cursor: pointer;
+   ">
+  Order Now
+</a>
+
+           <!-- <button id="order-btn" class="btn btn--sm"
+          style="background-color: #2196F3; color: white; border-radius: 4px; text-align: center;">
+          Order Now
+        </button> -->
         </div>
       </div>
 
-      <!-- Product Metadata -->
-      <ul class="details__meta">
-        <!-- <li class="meta__list flex"><span>SKU:</span>{{ product['sku'] }}</li> -->
-        <li class="meta__list flex"><span>Tags:</span>{{ product['tags'] }}</li>
-        <li class="meta__list flex"><span>Availability:</span>{{ product['stock_kg'] }} Kg in Stock</li>
-      </ul>
+        <!-- Product Metadata -->
+        <ul class="details__meta">
+          <!-- <li class="meta__list flex"><span>SKU:</span>{{ product['sku'] }}</li> -->
+          <li class="meta__list flex"><span>Tags:</span>{{ product['tags'] }}</li>
+          <li class="meta__list flex"><span>Availability:</span>{{ product['stock_kg'] }} Kg in Stock</li>
+        </ul>
+      </div>
     </div>
-  </div>
-</section>
-
-
+  </section>
       <!--=============== DETAILS TAB ===============-->
       <section class="details__tab container">
         <div class="detail__tabs">
@@ -427,18 +476,18 @@
 
      
       <!--=============== NEWSLETTER ===============-->
-      <section class="newsletter section">
+      <section class="newsletter section home__newsletter">
         <div class="newsletter__container container grid">
-          <h3 class="newsletter__title flex">
+          <!-- <h3 class="newsletter__title flex">
             <img
-              src="./assets/img/icon-email.svg"
+              src="{{ url_for('static', filename='./assets/img/icon-email.svg') }}"
               alt=""
               class="newsletter__icon"
             />
             Sign in to Newsletter
           </h3>
           <p class="newsletter__description">
-            ...and receive $25 coupon for first shopping.
+            ...and receive ₹25 coupon for first shopping.
           </p>
           <form action="" class="newsletter__form">
             <input
@@ -447,11 +496,10 @@
               class="newsletter__input"
             />
             <button type="submit" class="newsletter__btn">Subscribe</button>
-          </form>
+          </form> -->
         </div>
       </section>
     </main>
-
     <!--=============== FOOTER ===============-->
     <footer class="footer container">
       <div class="footer__container grid">
@@ -461,10 +509,10 @@
           </a>
           <h4 class="footer__subtitle">Contact</h4>
           <p class="footer__description">
-            <span>Address:</span> 13 Tlemcen Road, Street 32, Beb-Wahren
+            <span>Address:</span> Vadakkankulam ,Tirunelveli, Tamilnadu 
           </p>
           <p class="footer__description">
-            <span>Phone:</span> +01 2222 365 /(+91) 01 2345 6789
+            <span>Phone:</span> +91 9894151801 /(+91) 9894463310
           </p>
           <p class="footer__description">
             <span>Hours:</span> 10:00 - 18:00, Mon - Sat
@@ -472,37 +520,37 @@
           <div class="footer__social">
             <h4 class="footer__subtitle">Follow Me</h4>
             <div class="footer__links flex">
-              <a href="#">
+              <!-- <a href="#">
                 <img
                   src="./assets/img/icon-facebook.svg"
                   alt=""
                   class="footer__social-icon"
                 />
-              </a>
-              <a href="#">
+              </a> -->
+              <!-- <a href="#">
                 <img
                   src="./assets/img/icon-twitter.svg"
                   alt=""
                   class="footer__social-icon"
                 />
-              </a>
-              <a href="#">
+              </a> -->
+              <a href="https://www.instagram.com/secret_spoon_official/">
                 <img
-                  src="./assets/img/icon-instagram.svg"
+                  src="{{ url_for('static', filename='./assets/img/icon-instagram.svg') }}"
                   alt=""
                   class="footer__social-icon"
                 />
               </a>
-              <a href="#">
+              <!-- <a href="#">
                 <img
                   src="./assets/img/icon-pinterest.svg"
                   alt=""
                   class="footer__social-icon"
                 />
-              </a>
+              </a> -->
               <a href="#">
                 <img
-                  src="./assets/img/icon-youtube.svg"
+                  src="{{ url_for('static', filename='./assets/img/icon-youtube.svg') }}"
                   alt=""
                   class="footer__social-icon"
                 />
@@ -512,24 +560,24 @@
         </div>
         <div class="footer__content">
           <h3 class="footer__title">Address</h3>
-          <ul class="footer__links">
-            <li><a href="#" class="footer__link">About Us</a></li>
-            <li><a href="#" class="footer__link">Delivery Information</a></li>
-            <li><a href="#" class="footer__link">Privacy Policy</a></li>
-            <li><a href="#" class="footer__link">Terms & Conditions</a></li>
-            <li><a href="#" class="footer__link">Contact Us</a></li>
+          <ul class="footer__links" style="padding-left: 0rem;">
+            <li><a href="/story" class="footer__link">About Us</a></li>
+            <li><a href="/account" class="footer__link">Delivery Information</a></li>
+            <!-- <li><a href="#" class="footer__link">Privacy Policy</a></li> -->
+            <!-- <li><a href="#" class="footer__link">Terms & Conditions</a></li> -->
+            <li><a href="/contact" class="footer__link">Contact Us</a></li>
             <li><a href="#" class="footer__link">Support Center</a></li>
           </ul>
         </div>
         <div class="footer__content">
           <h3 class="footer__title">My Account</h3>
-          <ul class="footer__links">
-            <li><a href="#" class="footer__link">Sign In</a></li>
-            <li><a href="#" class="footer__link">View Cart</a></li>
-            <li><a href="#" class="footer__link">My Wishlist</a></li>
-            <li><a href="#" class="footer__link">Track My Order</a></li>
-            <li><a href="#" class="footer__link">Help</a></li>
-            <li><a href="#" class="footer__link">Order</a></li>
+          <ul class="footer__links" style="padding-left: 0rem;">
+            <li><a href="/user_login" class="footer__link">Sign In</a></li>
+            <li><a href="/cart" class="footer__link">View Cart</a></li>
+            <!-- <li><a href="#" class="footer__link">My Wishlist</a></li> -->
+            <!-- <li><a href="/account" class="footer__link">Track My Order</a></li> -->
+            <li><a href="/contact" class="footer__link">Help</a></li>
+            <li><a href="/account" class="footer__link">Order</a></li>
           </ul>
         </div>
         <div class="footer__content">
@@ -542,97 +590,164 @@
         </div>
       </div>
       <div class="footer__bottom">
-        <p class="copyright">&copy; 2024 Evara. All right reserved</p>
-        <span class="designer">Designer by Crypticalcoder</span>
+        <p class="copyright">&copy; 2025 SecretSpoon. All right reserved</p>
+        <span class="designer">Designed & Developed by Tecko </span>
       </div>
     </footer>
-
     <!--=============== SWIPER JS ===============-->
     <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
 
     <!--=============== MAIN JS ===============-->
+<script>
+document.getElementById("order-btn").addEventListener("click", function (e) {
+  e.preventDefault();
 
-    <script>
-      function addToCartFromCard(event) {
+  const quantity = document.getElementById("quantity").value;
+  const unit = document.getElementById("unit").value;
+  const title = "{{ product['title'] }}";
+  const price = {{ product['new_price'] }};
+
+  fetch("/place_order", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      title: title,
+      quantity: quantity,
+      unit: unit,
+      price: price,
+    }),
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.status === "success") {
+      alert(data.message);
+    } else if (data.status === "redirect") {
+      showLoginModal(data.url);
+    } else {
+      alert(data.message || "Failed to place order.");
+    }
+  })
+  .catch(err => {
+    console.error("Order failed:", err);
+    alert("Error placing order");
+  });
+});
+
+
+function showLoginModal(loginUrl) {
+  const modal = document.getElementById("customModal");
+  modal.style.display = "flex";
+
+  document.getElementById("confirmLogin").onclick = function () {
+    window.location.href = loginUrl;
+  };
+
+  document.getElementById("cancelLogin").onclick = function () {
+    modal.style.display = "none";
+  };
+}
+  document.addEventListener("DOMContentLoaded", () => {
+    const mainBtn = document.querySelector(".btn--sm");
+    if (mainBtn) {
+      mainBtn.addEventListener("click", function (event) {
         event.preventDefault();
 
-        const btn = event.currentTarget;
+        const quantity = parseFloat(document.getElementById("quantity").value);
+        const unit = document.getElementById("unit").value;
+
+        if (isNaN(quantity) || quantity <= 0) {
+          alert("Please enter a valid quantity.");
+          return;
+        }
+
+        const factor = unit === 'kg' ? 1000 : 1;
+        const finalQuantity = quantity * factor;
 
         const product = {
-          id: parseInt(btn.dataset.id),
-          title: btn.dataset.title,
-          brand: btn.dataset.brand,
-          price: parseFloat(btn.dataset.price),
-          image: btn.dataset.image,
-          description: btn.dataset.description,
-          quantity: parseInt(btn.dataset.quantity) || 250 // Default to 250g if not specified
+          id: {{ product['id'] }},
+          title: "{{ product['title'] }}",
+          brand: "{{ product['brand'] }}",
+          price: {{ product['new_price'] }},
+          image: "{{ url_for('static', filename=product['img_default']) }}",
+          description: "{{ product['description'] }}",
+          quantity: finalQuantity,
+          unit: unit
         };
 
         let cart = JSON.parse(localStorage.getItem("cart")) || [];
 
-        const existingIndex = cart.findIndex(item => item.id === product.id);
+        const existingIndex = cart.findIndex(item => item.id === product.id && item.unit === unit);
         if (existingIndex !== -1) {
-          cart[existingIndex].quantity += product.quantity;
+          cart[existingIndex].quantity += finalQuantity;
         } else {
           cart.push(product);
         }
 
         localStorage.setItem("cart", JSON.stringify(cart));
-        alert(`${product.title} added to cart!`);
-      }
-
-      document.addEventListener("DOMContentLoaded", () => {
-        const cardButtons = document.querySelectorAll(".add-to-cart-icon");
-        cardButtons.forEach(btn => {
-          btn.addEventListener("click", addToCartFromCard);
-        });
-
-        // Main product add to cart (with quantity input)
-        const mainBtn = document.querySelector(".btn--sm");
-        if (mainBtn) {
-          mainBtn.addEventListener("click", function (event) {
-            event.preventDefault();
-
-            const quantity = parseInt(document.getElementById("quantity").value);
-            if (isNaN(quantity) || quantity <= 0) {
-              alert("Please enter a valid quantity.");
-              return;
-            }
-
-            const product = {
-              id: {{ product['id'] }},
-              title: "{{ product['title'] }}",
-              brand: "{{ product['brand'] }}",
-              price: {{ product['new_price'] }},
-              image: "{{ url_for('static', filename=product['img_default']) }}",
-              description: "{{ product['description'] }}",
-              quantity: quantity
-            };
-
-            let cart = JSON.parse(localStorage.getItem("cart")) || [];
-
-            const existingIndex = cart.findIndex(item => item.id === product.id);
-            if (existingIndex !== -1) {
-              cart[existingIndex].quantity += quantity;
-            } else {
-              cart.push(product);
-            }
-
-            localStorage.setItem("cart", JSON.stringify(cart));
-            showCustomAlert(`${product.title} added to cart!`);
-          });
-        }
+        showCustomAlert(`${product.title} (${quantity}${unit}) added to cart!`);
       });
-      function showCustomAlert(message) {
-      const alertBox = document.getElementById("custom-alert");
-      alertBox.textContent = message;
-      alertBox.style.display = "block";
-
-      setTimeout(() => {
-        alertBox.style.display = "none";
-      }, 3000); // Hide after 3 seconds
     }
 
+    loadCart(); // Load cart when DOM is ready
+  });
+</script>
+
+
+
+
+    <script>
+        // 🛒 Function: Add product to cart from card (home/shop pages)
+  function addToCartFromCard(event) {
+    event.preventDefault();
+
+    const btn = event.currentTarget;
+
+    const title = btn.dataset.title.toLowerCase();
+    let unit;
+
+    // 🔍 Detect unit based on title (you can replace this with category-based detection)
+    if (title.includes("shirt") || title.includes("pant") || title.includes("dress")) {
+      unit = "pcs";
+    } else {
+      unit = "g";
+    }
+
+    const product = {
+      id: parseInt(btn.dataset.id),
+      title: btn.dataset.title,
+      brand: btn.dataset.brand,
+      price: parseFloat(btn.dataset.price),
+      image: btn.dataset.image,
+      description: btn.dataset.description,
+      quantity: parseInt(btn.dataset.quantity) || 250, // default 250g or 250pcs
+      unit: unit
+    };
+
+    let cart = JSON.parse(localStorage.getItem("cart")) || [];
+
+    const existingIndex = cart.findIndex(item => item.id === product.id && item.unit === unit);
+    if (existingIndex !== -1) {
+      cart[existingIndex].quantity += product.quantity;
+    } else {
+      cart.push(product);
+    }
+
+    localStorage.setItem("cart", JSON.stringify(cart));
+    showCustomAlert(`${product.title} added to cart!`);
+  }
+
+  // 🧾 Function: Show custom alert
+  function showCustomAlert(message) {
+    const alertBox = document.getElementById("custom-alert");
+    alertBox.textContent = message;
+    alertBox.style.display = "block";
+
+    setTimeout(() => {
+      alertBox.style.display = "none";
+    }, 3000);
+  }
     </script>
 <script>
   document.addEventListener("DOMContentLoaded", function () {
@@ -653,11 +768,11 @@
 
       const message = `Hello, I am interested in the following product:
 
-      *Product:* ${product.title}
-      *Brand:* ${product.brand}
-      *Price:* ₹${product.price}/kg
-      *Quantity:* ${quantity} grams
-      *Description:* ${product.description}
+      *Product:* ₹{product.title}
+      *Brand:* ₹{product.brand}
+      *Price:* ₹₹{product.price}/kg
+      *Quantity:* ₹{quantity} grams
+      *Description:* ₹{product.description}
 
       Please provide more details.`;
 
@@ -666,7 +781,7 @@
       // Replace with your WhatsApp number (with country code, no + or spaces)
       const phoneNumber = "919496392884";
 
-      const whatsappURL = `https://wa.me/${phoneNumber}?text=${encodedMessage}`;
+      const whatsappURL = `https://wa.me/₹{phoneNumber}?text=₹{encodedMessage}`;
 
       window.open(whatsappURL, "_blank");
     });

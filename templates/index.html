@@ -79,9 +79,16 @@
             <li class="nav__item">
               <a href="/contact" class="nav__link">Contact Us</a>
             </li>
-            <!-- <li class="nav__item">
-              <a href="login-register.html" class="nav__link">Login</a>
-            </li> -->
+           {% if user %}
+            <li class="nav__item">
+              <a href="/account" class="nav__link">My Account</a>
+            </li>
+          {% else %}
+            <li class="nav__item">
+              <a href="/user_login" class="nav__link">Login</a>
+            </li>
+          {% endif %}
+            
           </ul>
           <!-- <div class="header__search">
             <input
@@ -182,17 +189,14 @@
       max-width: 500px;">
     ✔ FSSAI சான்றளிக்கப்பட்டது |<strong> 100% வீட்டில் தயாரிக்கப்பட்டது</strong> | வண்ணமில்லாது
   </p>
-{% else %}
-  <p class="home__description mb-4" style="
-      font-size: calc(0.9rem + 0.1vw); 
-      color: #555; 
-      max-width: 500px;">
-    ✔ FSSAI Certified |<strong> 100% Homemade</strong> | Color-Free 
-  </p>
-{% endif %}
-
-
-    
+  {% else %}
+    <p class="home__description mb-4" style="
+        font-size: calc(0.9rem + 0.1vw); 
+        color: #555; 
+        max-width: 500px;">
+      100% Homemade |<strong> ✔ FSSAI Certified </strong> | Color-Free 
+    </p>
+  {% endif %} 
     <a href="shop"
       class="btn btn-lg px-4 py-2"
       style="background-color: #006400; border: none; color: white;display: flex ; align-items: center;"
@@ -308,8 +312,8 @@
               <i class="fi fi-rs-star"></i><i class="fi fi-rs-star"></i><i class="fi fi-rs-star"></i><i class="fi fi-rs-star"></i><i class="fi fi-rs-star"></i>
             </div>
             <div class="product__price flex">
-              <span class="new__price">${{ product.price }}</span>
-              <span class="old__price">${{ product.old_price }}</span>
+              <span class="new__price">₹{{ product.price }}</span>
+              <span class="old__price">₹{{ product.old_price }}</span>
             </div>
             <a href="#" class="action__btn cart__btn"><i class="fi fi-rs-shopping-bag-add"></i></a>
           </div>
@@ -330,8 +334,8 @@
             </div>
             <h4 class="deals__title">Summer Collection New Modern Design</h4>
             <div class="deals__price flex">
-              <span class="new__price">$139.00</span>
-              <span class="old__price">$160.99</span>
+              <span class="new__price">₹139.00</span>
+              <span class="old__price">₹160.99</span>
             </div>
             <div class="deals__group">
               <p class="deals__countdown-text">Hurry Up! Offer Ends In:</p>
@@ -365,8 +369,8 @@
             </div>
             <h4 class="deals__title">Try Something new on vacation</h4>
             <div class="deals__price flex">
-              <span class="new__price">$178.00</span>
-              <span class="old__price">$256.99</span>
+              <span class="new__price">₹178.00</span>
+              <span class="old__price">₹256.99</span>
             </div>
             <div class="deals__group">
               <p class="deals__countdown-text">Hurry Up! Offer Ends In:</p>
@@ -398,7 +402,7 @@
       <!--=============== NEWSLETTER ===============-->
       <section class="newsletter section home__newsletter">
         <div class="newsletter__container container grid">
-          <h3 class="newsletter__title flex">
+          <!-- <h3 class="newsletter__title flex">
             <img
               src="{{ url_for('static', filename='./assets/img/icon-email.svg') }}"
               alt=""
@@ -407,7 +411,7 @@
             Sign in to Newsletter
           </h3>
           <p class="newsletter__description">
-            ...and receive $25 coupon for first shopping.
+            ...and receive ₹25 coupon for first shopping.
           </p>
           <form action="" class="newsletter__form">
             <input
@@ -416,7 +420,7 @@
               class="newsletter__input"
             />
             <button type="submit" class="newsletter__btn">Subscribe</button>
-          </form>
+          </form> -->
         </div>
       </section>
     </main>
@@ -429,10 +433,10 @@
           </a>
           <h4 class="footer__subtitle">Contact</h4>
           <p class="footer__description">
-            <span>Address:</span> 13 Tlemcen Road, Street 32, Beb-Wahren
+            <span>Address:</span> Vadakkankulam ,Tirunelveli, Tamilnadu 
           </p>
           <p class="footer__description">
-            <span>Phone:</span> +01 2222 365 /(+91) 01 2345 6789
+            <span>Phone:</span> +91 9894151801 /(+91) 9894463310
           </p>
           <p class="footer__description">
             <span>Hours:</span> 10:00 - 18:00, Mon - Sat
@@ -454,7 +458,7 @@
                   class="footer__social-icon"
                 />
               </a> -->
-              <a href="#">
+              <a href="https://www.instagram.com/secret_spoon_official/">
                 <img
                   src="{{ url_for('static', filename='./assets/img/icon-instagram.svg') }}"
                   alt=""
@@ -481,23 +485,23 @@
         <div class="footer__content">
           <h3 class="footer__title">Address</h3>
           <ul class="footer__links" style="padding-left: 0rem;">
-            <li><a href="#" class="footer__link">About Us</a></li>
-            <li><a href="#" class="footer__link">Delivery Information</a></li>
-            <li><a href="#" class="footer__link">Privacy Policy</a></li>
-            <li><a href="#" class="footer__link">Terms & Conditions</a></li>
-            <li><a href="#" class="footer__link">Contact Us</a></li>
+            <li><a href="/story" class="footer__link">About Us</a></li>
+            <li><a href="/account" class="footer__link">Delivery Information</a></li>
+            <!-- <li><a href="#" class="footer__link">Privacy Policy</a></li> -->
+            <!-- <li><a href="#" class="footer__link">Terms & Conditions</a></li> -->
+            <li><a href="/contact" class="footer__link">Contact Us</a></li>
             <li><a href="#" class="footer__link">Support Center</a></li>
           </ul>
         </div>
         <div class="footer__content">
           <h3 class="footer__title">My Account</h3>
           <ul class="footer__links" style="padding-left: 0rem;">
-            <li><a href="#" class="footer__link">Sign In</a></li>
-            <li><a href="#" class="footer__link">View Cart</a></li>
-            <li><a href="#" class="footer__link">My Wishlist</a></li>
-            <li><a href="#" class="footer__link">Track My Order</a></li>
-            <li><a href="#" class="footer__link">Help</a></li>
-            <li><a href="#" class="footer__link">Order</a></li>
+            <li><a href="/user_login" class="footer__link">Sign In</a></li>
+            <li><a href="/cart" class="footer__link">View Cart</a></li>
+            <!-- <li><a href="#" class="footer__link">My Wishlist</a></li> -->
+            <!-- <li><a href="/account" class="footer__link">Track My Order</a></li> -->
+            <li><a href="/contact" class="footer__link">Help</a></li>
+            <li><a href="/account" class="footer__link">Order</a></li>
           </ul>
         </div>
         <div class="footer__content">
@@ -510,8 +514,8 @@
         </div>
       </div>
       <div class="footer__bottom">
-        <p class="copyright">&copy; 2024 Evara. All right reserved</p>
-        <span class="designer">Designer by Crypticalcoder</span>
+        <p class="copyright">&copy; 2025 SecretSpoon. All right reserved</p>
+        <span class="designer">Designed & Developed by Tecko </span>
       </div>
     </footer>
 

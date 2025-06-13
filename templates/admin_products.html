@@ -1,0 +1,184 @@
+<style>
+  .content-section {
+    padding: 30px;
+    background-color: #f9f9f9;
+  }
+
+  .content-section h2 {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 24px;
+    margin-top: 40px;
+    color: #333;
+  }
+
+  .content-section table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+    background-color: #fff;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+    font-size: 14px;
+    table-layout: fixed;
+    word-wrap: break-word;
+  }
+
+  .content-section th,
+  .content-section td {
+    border: 1px solid #ddd;
+    padding: 10px;
+    text-align: left;
+    vertical-align: top;
+  }
+
+  .content-section th {
+    background-color: #4CAF50;
+    color: white;
+  }
+
+  .content-section tr:nth-child(even) {
+    background-color: #f2f2f2;
+  }
+
+  .content-section img {
+    max-width: 50px;
+    height: auto;
+    display: block;
+    margin: auto;
+  }
+
+  .action-icons a {
+    margin-right: 8px;
+    text-decoration: none;
+    font-size: 16px;
+    color: #4CAF50;
+  }
+
+  .action-icons a:hover {
+    text-decoration: underline;
+  }
+
+  td:nth-child(10), td:nth-child(11), td:nth-child(12) {
+    white-space: pre-wrap;
+    word-wrap: break-word;
+  }
+
+  @media screen and (max-width: 1024px) {
+    .content-section table {
+      font-size: 12px;
+    }
+    .content-section h2 {
+      font-size: 20px;
+    }
+  }
+</style>
+
+<div class="content-section" id="products-section">
+  <!-- Categories Section -->
+  <h2>
+    Categories
+    <a href="{{ url_for('add_category') }}">➕</a>
+  </h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Image</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for cat in categories %}
+      <tr>
+        <td>{{ cat['name'] }}</td>
+        <td>
+          <img src="{{ url_for('static', filename='assets/img/' + cat['image_url']) }}" width="50" />
+        </td>
+        <td class="action-icons">
+          <a href="{{ url_for('edit_category', name=cat['name']) }}">✎</a>
+          <a href="{{ url_for('delete_category', name=cat['name']) }}">🗑</a>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <!-- Shop Products Section -->
+  <h2>
+    Shop Products
+    <a href="{{ url_for('add_shop_product') }}">➕</a>
+  </h2>
+  <table>
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Title</th>
+        <th>Category</th>
+        <th>Image Default</th>
+        <th>Image Hover</th>
+        <th>New Price</th>
+        <th>Old Price</th>
+        <th>Badge</th>
+        <th>Badge Class</th>
+        <th>Description</th>
+        <th>Brand</th>
+        <th>Tags</th>
+        <th>Stock (kg)</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for sp in shop_products %}
+      <tr>
+        <td>{{ sp['id'] }}</td>
+        <td>{{ sp['title'] }}</td>
+        <td>{{ sp['category'] }}</td>
+        <td><img src="{{ url_for('static', filename=sp['img_default']) }}" width="50"></td>
+        <td><img src="{{ url_for('static', filename=sp['img_hover']) }}" width="50"></td>
+        <td>{{ sp['new_price'] }}</td>
+        <td>{{ sp['old_price'] }}</td>
+        <td>{{ sp['badge'] }}</td>
+        <td>{{ sp['badge_class'] }}</td>
+        <td>{{ sp['description'] }}</td>
+        <td>{{ sp['brand'] }}</td>
+        <td>{{ sp['tags'] }}</td>
+        <td>{{ sp['stock_kg'] }}</td>
+        <td class="action-icons">
+          <a href="{{ url_for('edit_shop_product', id=sp['id']) }}">✎</a>
+          <a href="{{ url_for('delete_shop_product', id=sp['id']) }}">🗑</a>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <!-- Product Details Section -->
+  <h2>
+    Product Details
+    <a href="{{ url_for('add_product_detail') }}">➕</a>
+  </h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Product ID</th>
+        <th>Ingredients</th>
+        <th>Health Benefits</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for detail in product_details %}
+      <tr>
+        <td>{{ detail['product_id'] }}</td>
+        <td>{{ detail['ingredients'] }}</td>
+        <td>{{ detail['health_benefits'] }}</td>
+        <td class="action-icons">
+          <a href="{{ url_for('edit_product_detail', product_id=detail['product_id']) }}">✎</a>
+          <a href="{{ url_for('delete_product_detail', product_id=detail['product_id']) }}">🗑</a>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
