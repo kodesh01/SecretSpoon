@@ -533,6 +533,7 @@ def shop():
     shop_products = cur.fetchall()
     conn.close()
     user_id=None
+    user_data = None
 
     lang = session.get('lang', 'en')
     if 'user_id' in session:
