@@ -1,6 +1,9 @@
 /*=============== GOOGLE FONTS ===============*/
-@import url("https://fonts.googleapis.com/css2?family=Lato:wght@400;700&family=Spartan:wght@400;500;600;700&display=swap");
+@import url('https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,400..900;1,6..96,400..900&family=Signika:GRAD@-6&family=Space+Grotesk:wght@300..700&display=swap');
+        * {
+            font-family: "Space Grotesk", sans-serif;
 
+        }
 /*=============== VARIABLES CSS ===============*/
 
 :root {
@@ -19,8 +22,8 @@
   --border-color-alt: hsl(113, 15%, 90%);
 
   /*========== Font and typography ==========*/
-  --body-font: "Lato", sans-serif;
-  --second-font: "League Spartan" sans-serif;
+  /* --body-font: "Lato", sans-serif; */
+  /* --second-font: "League Spartan" sans-serif; */
   --big-font-size: 3.5rem;
   --h1-font-size: 2.75rem;
   --h2-font-size: 2rem;

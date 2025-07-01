@@ -1,116 +1,60 @@
-from fastapi import FastAPI, Request, Form, File, UploadFile, HTTPException, Depends, status
-from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
-from fastapi.templating import Jinja2Templates
+from fastapi import FastAPI, Request, Form, Depends, HTTPException, status
+from fastapi.responses import HTMLResponse, RedirectResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
+from fastapi.templating import Jinja2Templates
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
-from starlette.middleware.sessions import SessionMiddleware
-from starlette.requests import Request as StarletteRequest
 import psycopg2
 from psycopg2.extras import RealDictCursor
-import psycopg2.extras
-from email.mime.text import MIMEText
-from email.mime.multipart import MIMEMultipart
-import smtplib
-from werkzeug.utils import secure_filename
-import bcrypt
+from starlette.middleware.sessions import SessionMiddleware
 from datetime import datetime
-import random
-import json
 import os
-from typing import Optional, List, Dict, Any
+import random
+from typing import Optional, List, Dict
 from pydantic import BaseModel
-import shutil
+import hashlib  # Using hashlib as a fallback for password hashing
 
-# Initialize FastAPI app
-app = FastAPI(title="Shop Application", version="1.0.0")
-
-# Add session middleware
-app.add_middleware(SessionMiddleware, secret_key="Kodesh@12")
+app = FastAPI()
 
 # Mount static files
-
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
-# Templates
-templates = Jinja2Templates(directory="templates")  # not "/templates"
+# Configure templates
+templates = Jinja2Templates(directory="templates")
 
-# Database Configuration
+# Session middleware
+app.add_middleware(SessionMiddleware, secret_key="Kodesh@12")
+
+
+# Password hashing context
+# pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
+# Custom flash message implementation
+class FlashMessage(BaseModel):
+    message: str
+    category: str = "message"
+
+async def set_flash(request: Request, message: str, category: str = "message"):
+    if "_flash_messages" not in request.session:
+        request.session["_flash_messages"] = []
+    request.session["_flash_messages"].append({"message": message, "category": category})
+
+async def get_flashed_messages(request: Request) -> List[Dict[str, str]]:
+    return request.session.pop("_flash_messages", [])
+
+# Database configuration
 DB_USER = "postgres.xapwrudbiysziedhrvcd"
 DB_PASSWORD = "Kodesh@12"
 DB_HOST = "aws-0-ap-south-1.pooler.supabase.com"
 DB_PORT = "5432"
 DB_NAME = "postgres"
 
-# Upload Configuration
 UPLOAD_FOLDER = os.path.join('static', 'assets', 'img')
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'webp'}
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
-# Admin Configuration
-ADMIN_USERNAME = "admin"
-ADMIN_PASSWORD = "password123"
-
-# Email Configuration
-MAIL_SERVER = 'smtp.gmail.com'
-MAIL_PORT = 587
-MAIL_USERNAME = 'mjanokodesh@gmail.com'
-MAIL_PASSWORD = 'gngn wxai cvyq emjq'
-
-# Pydantic Models
-class UserRegister(BaseModel):
-    username: str
-    email: str
-    mobile: str
-    password: str
-    confirm_password: str
-    address_line: str
-    city: str
-    state: str
-    pincode: str
-
-class UserLogin(BaseModel):
-    email: str
-    password: str
-
-class OrderItem(BaseModel):
-    title: str
-    quantity: float
-    unit: str
-    price: float
-
-class BulkOrder(BaseModel):
-    cart: List[OrderItem]
-
-class ContactMessage(BaseModel):
-    name: str
-    email: str
-    message: str
-
-class ProfileUpdate(BaseModel):
-    username: str
-    mobile: str
-
-class AddressUpdate(BaseModel):
-    address_line: str
-    city: str
-    state: str
-    pincode: str
-
-class PasswordChange(BaseModel):
-    current_password: str
-    new_password: str
-    confirm_password: str
-
-class OrderStatusUpdate(BaseModel):
-    status: str
-
-# Utility Functions
-def allowed_file(filename: str) -> bool:
+def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
-@app.get("/test-static")
-def test_static():
-    return {
-        "static_url": "/static/assets/img/icon.png"
-    }
+
 def get_db_connection():
     return psycopg2.connect(
         user=DB_USER,
@@ -121,97 +65,60 @@ def get_db_connection():
         cursor_factory=RealDictCursor
     )
 
-def send_email_otp(email: str, otp: str):
-    try:
-        msg = MIMEMultipart()
-        msg['From'] = MAIL_USERNAME
-        msg['To'] = email
-        msg['Subject'] = 'Your OTP Verification Code'
-        
-        body = f"Your OTP is: {otp}"
-        msg.attach(MIMEText(body, 'plain'))
-        
-        server = smtplib.SMTP(MAIL_SERVER, MAIL_PORT)
-        server.starttls()
-        server.login(MAIL_USERNAME, MAIL_PASSWORD)
-        text = msg.as_string()
-        server.sendmail(MAIL_USERNAME, email, text)
-        server.quit()
-    except Exception as e:
-        print(f"Failed to send email: {e}")
+# Email configuration (placeholder - you'll need to implement this)
+class Mail:
+    def __init__(self):
+        pass
+    
+    def send(self, message):
+        print(f"Email would be sent to {message['recipients']} with subject {message['subject']}")
+        # Implement actual email sending here
 
-def send_contact_email(name: str, email: str, message: str):
-    try:
-        msg = MIMEMultipart()
-        msg['From'] = email
-        msg['To'] = MAIL_USERNAME
-        msg['Subject'] = f"New Contact Message from {name}"
-        
-        body = f"Name: {name}\nEmail: {email}\n\nMessage:\n{message}"
-        msg.attach(MIMEText(body, 'plain'))
-        
-        server = smtplib.SMTP(MAIL_SERVER, MAIL_PORT)
-        server.starttls()
-        server.login(MAIL_USERNAME, MAIL_PASSWORD)
-        text = msg.as_string()
-        server.sendmail(MAIL_USERNAME, MAIL_USERNAME, text)
-        server.quit()
-    except Exception as e:
-        print(f"Failed to send contact email: {e}")
+mail = Mail()
 
-def require_login(request: Request):
-    if 'user_id' not in request.session:
-        raise HTTPException(status_code=401, detail="Authentication required")
-    return request.session.get('user_id')
+# Models
+class Message(BaseModel):
+    subject: str
+    sender: str
+    recipients: list[str]
+    body: str
 
-def require_admin(request: Request):
-    if not request.session.get('admin_logged_in'):
-        raise HTTPException(status_code=401, detail="Admin authentication required")
-    return True
+# Helper functions
+async def flash(request: Request, message: str, category: str = "message"):
+    request.session.setdefault("_flashes", []).append({"message": message, "category": category})
 
-# Test database connection
-try:
-    test_conn = psycopg2.connect(
-        user=DB_USER,
-        password=DB_PASSWORD,
-        host=DB_HOST,
-        port=DB_PORT,
-        dbname=DB_NAME
-    )
-    print("✅ Connected to Supabase PostgreSQL for verification\n")
-    test_conn.close()
-except Exception as e:
-    print("❌ Database connection failed:", e)
+async def get_flashed_messages(request: Request):
+    return request.session.pop("_flashes", [])
 
 # Routes
-
 @app.post("/set-language")
-async def set_language(request: Request, language: str = Form(default='en')):
-    request.session['lang'] = language
-    return RedirectResponse(url=request.headers.get('referer', '/'), status_code=302)
+async def set_language(request: Request):
+    form_data = await request.form()
+    selected_language = form_data.get("language", "en")
+    request.session["lang"] = selected_language
+    referrer = request.headers.get("referer", "/")
+    return RedirectResponse(referrer, status_code=status.HTTP_303_SEE_OTHER)
 
 @app.get("/", response_class=HTMLResponse)
 async def index(request: Request):
     conn = get_db_connection()
     cur = conn.cursor()
 
-    # Fetch categories and products
     cur.execute("SELECT * FROM categories")
     categories = cur.fetchall()
 
     cur.execute("SELECT * FROM shop_products")
     products = cur.fetchall()
 
-    # Fetch user info if logged in
     user_data = None
-    if 'user_id' in request.session:
-        cur.execute("SELECT username FROM users WHERE id = %s", (request.session['user_id'],))
+    if "user_id" in request.session:
+        cur.execute("SELECT username FROM users WHERE id = %s", (request.session["user_id"],))
         user_data = cur.fetchone()
 
     conn.close()
 
-    lang = request.session.get('lang', 'en')
-    tags = sorted(set(p['tags'].lower() for p in products if p['tags']))
+    lang = request.session.get("lang", "en")
+    tags = sorted(set(p["tags"].lower() for p in products if p["tags"]))
 
     return templates.TemplateResponse(
         "index.html",
@@ -225,14 +132,14 @@ async def index(request: Request):
         }
     )
 
-# Authentication Routes
-
 @app.post("/verify-otp")
-async def verify_otp(request: Request, otp: str = Form(...)):
+async def verify_otp(request: Request):
+    form_data = await request.form()
+    entered_otp = form_data.get("otp")
     temp_user = request.session.get("temp_user")
 
-    if not temp_user or otp != temp_user['otp']:
-        return JSONResponse({'status': 'error', 'message': 'Invalid OTP'})
+    if not temp_user or entered_otp != temp_user["otp"]:
+        return JSONResponse({"status": "error", "message": "Invalid OTP"})
 
     conn = get_db_connection()
     cur = conn.cursor()
@@ -242,97 +149,118 @@ async def verify_otp(request: Request, otp: str = Form(...)):
             INSERT INTO users (username, email, mobile, password, address_line, city, state, pincode)
             VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
         """, (
-            temp_user['username'],
-            temp_user['email'],
-            temp_user['mobile'],
-            temp_user['password'],
-            temp_user['address_line'],
-            temp_user['city'],
-            temp_user['state'],
-            temp_user['pincode']
+            temp_user["username"],
+            temp_user["email"],
+            temp_user["mobile"],
+            temp_user["password"],
+            temp_user["address_line"],
+            temp_user["city"],
+            temp_user["state"],
+            temp_user["pincode"]
         ))
         conn.commit()
-        request.session.pop('temp_user', None)
-        return JSONResponse({'status': 'success'})
+        request.session.pop("temp_user", None)
+        return JSONResponse({"status": "success"})
     except Exception as e:
-        return JSONResponse({'status': 'error', 'message': str(e)})
+        return JSONResponse({"status": "error", "message": str(e)})
     finally:
         cur.close()
         conn.close()
 
 @app.get("/user_login", response_class=HTMLResponse)
 async def user_login(request: Request):
-    if 'user_id' in request.session:
-        return RedirectResponse(url="/account", status_code=302)
+    if "user_id" in request.session:
+        return RedirectResponse("/account", status_code=status.HTTP_303_SEE_OTHER)
     return templates.TemplateResponse("login-register.html", {"request": request})
 
 @app.post("/register")
-async def register_user(request: Request, user_data: UserRegister):
-    if user_data.password != user_data.confirm_password:
-        return JSONResponse({'status': 'error', 'message': 'Passwords do not match.'})
+async def register_user(request: Request):
+    form_data = await request.form()
+    username = form_data["username"]
+    email = form_data["email"]
+    mobile = form_data["mobile"]
+    password = form_data["password"]
+    confirm_password = form_data["confirm_password"]
+    address_line = form_data["address_line"]
+    city = form_data["city"]
+    state = form_data["state"]
+    pincode = form_data["pincode"]
+
+    if password != confirm_password:
+        return JSONResponse({"status": "error", "message": "Passwords do not match."})
 
     conn = get_db_connection()
     cur = conn.cursor()
 
-    cur.execute("SELECT * FROM users WHERE email=%s OR mobile=%s", (user_data.email, user_data.mobile))
+    cur.execute("SELECT * FROM users WHERE email=%s OR mobile=%s", (email, mobile))
     if cur.fetchone():
-        return JSONResponse({'status': 'error', 'message': 'Email or Mobile already registered.'})
+        return JSONResponse({"status": "error", "message": "Email or Mobile already registered."})
 
     otp = str(random.randint(100000, 999999))
-    send_email_otp(user_data.email, otp)
+    # send_email_otp(email, otp)  # Implement this function
 
-    request.session['temp_user'] = {
-        'username': user_data.username,
-        'email': user_data.email,
-        'mobile': user_data.mobile,
-        'password': bcrypt.hashpw(user_data.password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8'),
-        'address_line': user_data.address_line,
-        'city': user_data.city,
-        'state': user_data.state,
-        'pincode': user_data.pincode,
-        'otp': otp
+    request.session["temp_user"] = {
+        "username": username,
+        "email": email,
+        "mobile": mobile,
+        "password": bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt()).decode("utf-8"),
+        "address_line": address_line,
+        "city": city,
+        "state": state,
+        "pincode": pincode,
+        "otp": otp
     }
 
-    cur.close()
-    conn.close()
-    return JSONResponse({'status': 'otp_sent'})
+    return JSONResponse({"status": "otp_sent"})
 
 @app.post("/user_login_post")
-async def user_login_post(request: Request, email: str = Form(...), password: str = Form(...)):
+async def user_login_post(request: Request):
+    form_data = await request.form()
+    email = form_data["email"]
+    password = form_data["password"]
+
     conn = get_db_connection()
     cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
 
     try:
         cur.execute("SELECT * FROM users WHERE email=%s", (email,))
         user = cur.fetchone()
-        print("Fetched user:", user)
 
-        if user and bcrypt.checkpw(password.encode('utf-8'), user['password'].encode('utf-8')):
-            request.session['user_id'] = user['id']
-            request.session['username'] = user['username']
-            return RedirectResponse(url="/account", status_code=302)
+        if user and bcrypt.checkpw(password.encode("utf-8"), user["password"].encode("utf-8")):
+            request.session["user_id"] = user["id"]
+            request.session["username"] = user["username"]
+            await flash(request, "Login successful!", "success")
+            return RedirectResponse("/account", status_code=status.HTTP_303_SEE_OTHER)
         else:
-            return RedirectResponse(url="/user_login?error=invalid_credentials", status_code=302)
+            await flash(request, "Invalid credentials", "error")
     except Exception as e:
-        print("Login error:", str(e))
-        return RedirectResponse(url="/user_login?error=login_failed", status_code=302)
+        await flash(request, "Login failed: " + str(e), "error")
     finally:
         cur.close()
         conn.close()
 
+    return RedirectResponse("/user_login", status_code=status.HTTP_303_SEE_OTHER)
+
 @app.get("/user_logout")
 async def user_logout(request: Request):
     request.session.clear()
-    return RedirectResponse(url="/user_login", status_code=302)
+    await flash(request, "You have been logged out.", "success")
+    return RedirectResponse("/user_login", status_code=status.HTTP_303_SEE_OTHER)
 
-# Order Routes
-
-@app.post('/place_order')
-async def place_order(request: Request, order_data: OrderItem):
-    user_id = require_login(request)
-
+@app.post("/place_order")
+async def place_order(request: Request):
     try:
-        total_cost = order_data.price * (order_data.quantity / 1000 if order_data.unit == "g" else order_data.quantity)
+        user_id = request.session.get("user_id")
+        if not user_id:
+            return JSONResponse({"status": "redirect", "url": "/user_login"}, status_code=401)
+
+        data = await request.json()
+        product_title = data.get("title")
+        quantity = int(data.get("quantity"))
+        unit = data.get("unit")
+        price = float(data.get("price"))
+
+        total_cost = price * (quantity / 1000 if unit == "g" else quantity)
 
         conn = get_db_connection()
         cur = conn.cursor()
@@ -340,41 +268,35 @@ async def place_order(request: Request, order_data: OrderItem):
         cur.execute("""
             INSERT INTO orders (user_id, order_date, title, quantity, unit, total_cost, status)
             VALUES (%s, %s, %s, %s, %s, %s, %s)
-        """, (user_id, datetime.now(), order_data.title, order_data.quantity, order_data.unit, total_cost, 'Pending'))
+        """, (user_id, datetime.now(), product_title, quantity, unit, total_cost, "Pending"))
 
-        print("🛒 Order Data to Insert:")
-        print(f"User ID: {user_id}")
-        print(f"Title: {order_data.title}")
-        print(f"Quantity: {order_data.quantity} {order_data.unit}")
-        print(f"Price per Unit: ₹{order_data.price}")
-        print(f"Total Cost: ₹{total_cost:.2f}")
-        print("Status: Pending")
-        
         conn.commit()
         cur.close()
         conn.close()
-        return JSONResponse({'status': 'success', 'message': 'Order placed successfully'})
-
+        return JSONResponse({"status": "success", "message": "Order placed successfully"})
     except Exception as e:
-        return JSONResponse({'status': 'error', 'message': str(e)})
+        return JSONResponse({"status": "error", "message": str(e)}, status_code=500)
 
-@app.post('/place_order_bulk')
-async def place_order_bulk(request: Request, bulk_order: BulkOrder):
-    user_id = require_login(request)
-
+@app.post("/place_order_bulk")
+async def place_order_bulk(request: Request):
     try:
-        if not bulk_order.cart:
-            return JSONResponse({'status': 'error', 'message': 'Cart is empty'})
+        user_id = request.session.get("user_id")
+        if not user_id:
+            return JSONResponse({"status": "redirect", "url": "/user_login"}, status_code=401)
+
+        data = (await request.json()).get("cart", [])
+        if not data:
+            return JSONResponse({"status": "error", "message": "Cart is empty"}, status_code=400)
 
         conn = get_db_connection()
         cur = conn.cursor()
 
-        for item in bulk_order.cart:
-            quantity = float(item.quantity)
-            unit = item.unit.lower()
-            price = float(item.price)
+        for item in data:
+            title = item.get("title")
+            quantity = float(item.get("quantity"))
+            unit = item.get("unit", "g").lower()
+            price = float(item.get("price"))
 
-            # Calculate total cost
             if unit in ["g", "gram", "grams", "kg", "kilogram", "kilograms"]:
                 total_cost = price * (quantity / 1000)
             elif unit in ["ml", "millilitre", "millilitres", "litre", "litres"]:
@@ -382,33 +304,31 @@ async def place_order_bulk(request: Request, bulk_order: BulkOrder):
             elif unit in ["pcs", "pieces", "unit", "shirt", "pants", "item"]:
                 total_cost = price * quantity
             else:
-                total_cost = price * quantity  # fallback
+                total_cost = price * quantity
 
             cur.execute("""
                 INSERT INTO orders (user_id, order_date, title, total_cost, status, quantity, unit)
                 VALUES (%s, %s, %s, %s, %s, %s, %s)
-            """, (user_id, datetime.now(), item.title, round(total_cost, 2), 'Pending', quantity, unit))
-
-            print(f"🧾 Title: {item.title}, Qty: {quantity}{unit}, ₹{price}, Total: ₹{round(total_cost, 2)}")
+            """, (user_id, datetime.now(), title, round(total_cost, 2), "Pending", quantity, unit))
 
         conn.commit()
         cur.close()
         conn.close()
 
-        return JSONResponse({'status': 'success', 'message': 'All items ordered successfully'})
+        return JSONResponse({"status": "success", "message": "All items ordered successfully"})
     except Exception as e:
-        return JSONResponse({'status': 'error', 'message': str(e)})
-
-# Account Management Routes
+        return JSONResponse({"status": "error", "message": str(e)}, status_code=500)
 
 @app.get("/account", response_class=HTMLResponse)
 async def account(request: Request):
-    user_id = require_login(request)
+    if "user_id" not in request.session:
+        return RedirectResponse("/user_login", status_code=status.HTTP_303_SEE_OTHER)
+
+    user_id = request.session.get("user_id")
 
     conn = get_db_connection()
     cursor = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
 
-    # Get orders
     cursor.execute("""
         SELECT id, order_date, title, status, total_cost 
         FROM orders 
@@ -417,7 +337,6 @@ async def account(request: Request):
     """, (user_id,))
     user_orders = cursor.fetchall()
 
-    # Get user details
     cursor.execute("""
         SELECT username, email, mobile, address_line, city, state, pincode
         FROM users 
@@ -427,14 +346,9 @@ async def account(request: Request):
 
     cursor.close()
     conn.close()
-    
-    print("User Data:", user_data)
-    print("User Orders:")
-    for order in user_orders:
-        print(order)
 
     return templates.TemplateResponse(
-        "accounts.html", 
+        "accounts.html",
         {
             "request": request,
             "orders": user_orders,
@@ -444,37 +358,38 @@ async def account(request: Request):
     )
 
 @app.post("/cancel-order/{order_id}")
-async def cancel_order(request: Request, order_id: int):
-    user_id = require_login(request)
-    
+async def cancel_order(order_id: int, request: Request):
+    if "user_id" not in request.session:
+        return JSONResponse({"status": "error", "message": "Not logged in"})
+
+    user_id = request.session["user_id"]
     conn = get_db_connection()
     cur = conn.cursor()
 
     try:
-        # Ensure user owns the order
         cur.execute("SELECT id FROM orders WHERE id = %s AND user_id = %s", (order_id, user_id))
         if not cur.fetchone():
-            return JSONResponse({'status': 'error', 'message': 'Order not found or not yours'})
+            return JSONResponse({"status": "error", "message": "Order not found or not yours"})
 
-        # Delete the order
         cur.execute("DELETE FROM orders WHERE id = %s AND user_id = %s", (order_id, user_id))
         conn.commit()
-
-        return JSONResponse({'status': 'success', 'message': 'Order cancelled successfully'})
-
+        return JSONResponse({"status": "success", "message": "Order cancelled successfully"})
     except Exception as e:
-        print("❌ Error cancelling order:", str(e))
-        return JSONResponse({'status': 'error', 'message': 'Failed to cancel order'})
-
+        return JSONResponse({"status": "error", "message": str(e)})
     finally:
         cur.close()
         conn.close()
 
 @app.post("/update-profile")
-async def update_profile(request: Request, username: str = Form(...), mobile: str = Form(...)):
-    user_id = require_login(request)
+async def update_profile(request: Request):
+    if "user_id" not in request.session:
+        return RedirectResponse("/user_login", status_code=status.HTTP_303_SEE_OTHER)
 
-    # Validate input
+    form_data = await request.form()
+    user_id = request.session.get("user_id")
+    username = form_data.get("username")
+    mobile = form_data.get("mobile")
+
     if not username or not mobile:
         raise HTTPException(status_code=400, detail="Invalid input")
 
@@ -491,20 +406,20 @@ async def update_profile(request: Request, username: str = Form(...), mobile: st
     cursor.close()
     conn.close()
 
-    # Update session
-    request.session['username'] = username
-
-    return RedirectResponse(url="/account", status_code=302)
+    request.session["username"] = username
+    return RedirectResponse("/account", status_code=status.HTTP_303_SEE_OTHER)
 
 @app.post("/update-address")
-async def update_address(
-    request: Request,
-    address_line: str = Form(...),
-    city: str = Form(...),
-    state: str = Form(...),
-    pincode: str = Form(...)
-):
-    user_id = require_login(request)
+async def update_address(request: Request):
+    if "user_id" not in request.session:
+        return RedirectResponse("/user_login", status_code=status.HTTP_303_SEE_OTHER)
+
+    form_data = await request.form()
+    user_id = request.session.get("user_id")
+    address_line = form_data["address_line"]
+    city = form_data["city"]
+    state = form_data["state"]
+    pincode = form_data["pincode"]
 
     conn = get_db_connection()
     cursor = conn.cursor()
@@ -519,106 +434,83 @@ async def update_address(
     cursor.close()
     conn.close()
 
-    return RedirectResponse(url="/account", status_code=302)
+    return RedirectResponse("/account", status_code=status.HTTP_303_SEE_OTHER)
 
 @app.post("/change-password")
-async def change_password(
-    request: Request,
-    current_password: str = Form(...),
-    new_password: str = Form(...),
-    confirm_password: str = Form(...)
-):
-    user_id = require_login(request)
+async def change_password(request: Request):
+    if "user_id" not in request.session:
+        return JSONResponse({"status": "error", "message": "User not logged in"})
 
-    print("📥 Got:")
-    print("Current Password:", current_password)
-    print("New Password:", new_password)
-    print("Confirm Password:", confirm_password)
+    form_data = await request.form()
+    current_password = form_data.get("current_password")
+    new_password = form_data.get("new_password")
+    confirm_password = form_data.get("confirm_password")
 
     if new_password != confirm_password:
-        return JSONResponse({'status': 'error', 'message': 'New passwords do not match'})
+        return JSONResponse({"status": "error", "message": "New passwords do not match"})
 
+    user_id = request.session["user_id"]
     conn = get_db_connection()
     cur = conn.cursor()
-    
     try:
         cur.execute("SELECT password FROM users WHERE id = %s", (user_id,))
         result = cur.fetchone()
         if not result:
-            return JSONResponse({'status': 'error', 'message': 'User not found'})
+            return JSONResponse({"status": "error", "message": "User not found"})
 
-        hashed_password = result['password']
-        print("🔐 Stored hashed password (from DB):", hashed_password)
+        hashed_password = result["password"]
 
         if not bcrypt.checkpw(current_password.encode(), hashed_password.encode()):
-            print("❌ Password check failed")
-            return JSONResponse({'status': 'error', 'message': 'Current password is incorrect'})
+            return JSONResponse({"status": "error", "message": "Current password is incorrect"})
 
-        print("✅ Password check passed")
-
-        # Hash the new password
         new_hashed = bcrypt.hashpw(new_password.encode(), bcrypt.gensalt()).decode()
-        print("📤 New Hashed Password to store:", new_hashed)
-
-        # Update in DB
         cur.execute("UPDATE users SET password = %s WHERE id = %s", (new_hashed, user_id))
         conn.commit()
-
-        return JSONResponse({'status': 'success', 'message': 'Password updated successfully'})
-
+        return JSONResponse({"status": "success", "message": "Password updated successfully"})
     except Exception as e:
-        import traceback
-        traceback.print_exc()
-        return JSONResponse({'status': 'error', 'message': f'Exception: {str(e)}'})
-
+        return JSONResponse({"status": "error", "message": str(e)})
     finally:
         cur.close()
         conn.close()
 
-# Contact Route
-
 @app.post("/send-message")
-async def send_message(
-    request: Request,
-    name: str = Form(...),
-    email: str = Form(...),
-    message: str = Form(...)
-):
-    send_contact_email(name, email, message)
-    return RedirectResponse(url="/contact?success=true", status_code=302)
+async def send_message(request: Request):
+    form_data = await request.form()
+    name = form_data["name"]
+    email = form_data["email"]
+    message = form_data["message"]
+    
+    msg = Message(
+        subject=f"New Contact Message from {name}",
+        sender=email,
+        recipients=["mjanokodesh@gmail.com"],
+        body=f"Name: {name}\nEmail: {email}\n\nMessage:\n{message}"
+    )
+    mail.send(msg)
+    await flash(request, "success")
+    return RedirectResponse("/contact", status_code=status.HTTP_303_SEE_OTHER)
 
-# Shop Routes
-
-@app.get('/shop', response_class=HTMLResponse)
+@app.get("/shop", response_class=HTMLResponse)
 async def shop(request: Request, category: Optional[str] = None):
     conn = get_db_connection()
     cur = conn.cursor()
     cur.execute("SELECT * FROM shop_products")
     shop_products = cur.fetchall()
     conn.close()
-
-    lang = request.session.get('lang', 'en')
-    user_data = None
     
-    if 'user_id' in request.session:
+    user_data = None
+    lang = request.session.get("lang", "en")
+    
+    if "user_id" in request.session:
         conn = get_db_connection()
         cur = conn.cursor()
-        cur.execute("SELECT username FROM users WHERE id = %s", (request.session['user_id'],))
+        cur.execute("SELECT username FROM users WHERE id = %s", (request.session["user_id"],))
         user_data = cur.fetchone()
         conn.close()
 
-    print("\n[DEBUG] Shop Products from DB:")
-    for sp in shop_products:
-        print(dict(sp))
-
     if category:
-        category_filter = category.strip().lower()
-        filtered_products = [p for p in shop_products if p['category'].strip().lower() == category_filter]
-
-        print(f"\n[DEBUG] Filtered Shop Products for category '{category_filter}':")
-        for fp in filtered_products:
-            print(dict(fp))
-
+        category = category.strip().lower()
+        filtered_products = [p for p in shop_products if p["category"].strip().lower() == category]
         return templates.TemplateResponse(
             "shop.html",
             {
@@ -639,18 +531,18 @@ async def shop(request: Request, category: Optional[str] = None):
         }
     )
 
-@app.get('/cart', response_class=HTMLResponse)
+@app.get("/cart", response_class=HTMLResponse)
 async def cart(request: Request):
-    lang = request.session.get('lang', 'en')
+    lang = request.session.get("lang", "en")
     user_data = None
 
-    if 'user_id' in request.session:
+    if "user_id" in request.session:
         conn = get_db_connection()
         cur = conn.cursor()
-        cur.execute("SELECT username FROM users WHERE id = %s", (request.session['user_id'],))
+        cur.execute("SELECT username FROM users WHERE id = %s", (request.session["user_id"],))
         user_data = cur.fetchone()
         conn.close()
-        
+    
     return templates.TemplateResponse(
         "cart.html",
         {
@@ -660,18 +552,18 @@ async def cart(request: Request):
         }
     )
 
-@app.get('/story', response_class=HTMLResponse)
+@app.get("/story", response_class=HTMLResponse)
 async def story(request: Request):
-    lang = request.session.get('lang', 'en')
+    lang = request.session.get("lang", "en")
     user_data = None
 
-    if 'user_id' in request.session:
+    if "user_id" in request.session:
         conn = get_db_connection()
         cur = conn.cursor()
-        cur.execute("SELECT username FROM users WHERE id = %s", (request.session['user_id'],))
+        cur.execute("SELECT username FROM users WHERE id = %s", (request.session["user_id"],))
         user_data = cur.fetchone()
         conn.close()
-        
+    
     return templates.TemplateResponse(
         "about.html",
         {
@@ -681,16 +573,15 @@ async def story(request: Request):
         }
     )
 
-@app.get('/checkout', response_class=HTMLResponse)
+@app.get("/checkout", response_class=HTMLResponse)
 async def checkout(request: Request):
     return templates.TemplateResponse("checkout.html", {"request": request})
 
-@app.get('/details/{product_id}', response_class=HTMLResponse)
-async def details(request: Request, product_id: int):
+@app.get("/details/{product_id}", response_class=HTMLResponse)
+async def details(product_id: int, request: Request):
     conn = get_db_connection()
     cur = conn.cursor()
     
-    # Get product
     cur.execute("SELECT * FROM shop_products WHERE id = %s", (product_id,))
     product = cur.fetchone()
 
@@ -698,41 +589,24 @@ async def details(request: Request, product_id: int):
         conn.close()
         raise HTTPException(status_code=404, detail="Product not found")
 
-    # Get language
-    lang = request.session.get('lang', 'en')
-
-    # Get user (optional)
+    lang = request.session.get("lang", "en")
     user_data = None
-    if 'user_id' in request.session:
+    if "user_id" in request.session:
         user_cur = conn.cursor()
-        user_cur.execute("SELECT username FROM users WHERE id = %s", (request.session['user_id'],))
+        user_cur.execute("SELECT username FROM users WHERE id = %s", (request.session["user_id"],))
         user_data = user_cur.fetchone()
         user_cur.close()
 
-    print("\n🔎 Shop Product Data Retrieved:")
-    print(dict(product))
-
-    # Get product details
     cur.execute("SELECT * FROM product_details WHERE product_id = %s", (product_id,))
     product_details = cur.fetchone()
 
-    print("\n📦 Product Details Data Retrieved:")
-    if product_details:
-        print(dict(product_details))
-
-    # Prepare product dictionary
     product_dict = dict(product)
     product_dict["ingredients"] = product_details["ingredients"] if product_details else "No ingredients listed."
     product_dict["health_benefits"] = product_details["health_benefits"] if product_details else "No health benefits listed."
 
-    # Get related products
     cur.execute("SELECT * FROM shop_products WHERE category = %s AND id != %s LIMIT 4",
                 (product["category"], product_id))
     related_products = cur.fetchall()
-    
-    print("\n🔗 Related Products Retrieved:")
-    for rp in related_products:
-        print(dict(rp))
 
     cur.close()
     conn.close()
@@ -748,59 +622,39 @@ async def details(request: Request, product_id: int):
         }
     )
 
-@app.get('/contact', response_class=HTMLResponse)
-async def contact(request: Request):
-    user_data = None
+# Admin routes
+ADMIN_USERNAME = "admin"
+ADMIN_PASSWORD = "password123"
 
-    if 'user_id' in request.session:
-        conn = get_db_connection()
-        cur = conn.cursor()
-        cur.execute("SELECT username FROM users WHERE id = %s", (request.session['user_id'],))
-        user_data = cur.fetchone()
-        conn.close()
-        
-    return templates.TemplateResponse(
-        "contact.html",
-        {
-            "request": request,
-            "user": user_data
-        }
-    )
+security = HTTPBasic()
 
-# Admin Routes
+async def get_current_admin(credentials: HTTPBasicCredentials = Depends(security)):
+    if credentials.username != ADMIN_USERNAME or credentials.password != ADMIN_PASSWORD:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Incorrect email or password",
+            headers={"WWW-Authenticate": "Basic"},
+        )
+    return credentials.username
 
-@app.get('/login', response_class=HTMLResponse)
-async def admin_login_page(request: Request):
-    return templates.TemplateResponse('login.html', {"request": request})
+@app.get("/login", response_class=HTMLResponse)
+async def login(request: Request):
+    return templates.TemplateResponse("login.html", {"request": request})
 
-@app.post('/login')
-async def admin_login(request: Request, username: str = Form(...), password: str = Form(...)):
-    if username == ADMIN_USERNAME and password == ADMIN_PASSWORD:
-        request.session['admin_logged_in'] = True
-        return RedirectResponse(url='/admin', status_code=302)
-    else:
-        return RedirectResponse(url='/login?error=invalid_credentials', status_code=302)
-
-@app.get('/admin/products', response_class=HTMLResponse)
-async def admin_products(request: Request):
-    require_admin(request)
-    
+@app.get("/admin/products", response_class=HTMLResponse)
+async def admin_products(request: Request, admin: str = Depends(get_current_admin)):
     conn = get_db_connection()
     cur = conn.cursor()
-    
     cur.execute("SELECT * FROM categories")
     categories = cur.fetchall()
-    
     cur.execute("SELECT * FROM shop_products")
     shop_products = cur.fetchall()
-    
     cur.execute("SELECT * FROM product_details")
     product_details = cur.fetchall()
-    
     conn.close()
     
     return templates.TemplateResponse(
-        'admin_products.html',
+        "admin_products.html",
         {
             "request": request,
             "categories": categories,
@@ -809,10 +663,8 @@ async def admin_products(request: Request):
         }
     )
 
-@app.get('/admin', response_class=HTMLResponse)
-async def admin(request: Request):
-    require_admin(request)
-
+@app.get("/admin", response_class=HTMLResponse)
+async def admin(request: Request, admin: str = Depends(get_current_admin)):
     conn = get_db_connection()
     cur = conn.cursor(cursor_factory=RealDictCursor)
 
@@ -852,7 +704,7 @@ async def admin(request: Request):
     conn.close()
 
     return templates.TemplateResponse(
-        'admin.html',
+        "admin.html",
         {
             "request": request,
             "orders": orders,
@@ -863,41 +715,359 @@ async def admin(request: Request):
         }
     )
 
-# @app.get('/admin/analytics_data')
-# async def analytics_data(request: Request):
-#     require_admin(request)
+@app.get("/admin/analytics_data")
+async def analytics_data(admin: str = Depends(get_current_admin)):
+    conn = get_db_connection()
+    cur = conn.cursor(cursor_factory=RealDictCursor)
+
+    cur.execute("""
+        SELECT title, SUM(quantity) AS quantity, SUM(total_cost) AS total_sales
+        FROM orders
+        GROUP BY title
+        ORDER BY total_sales DESC
+    """)
+    sales_per_product = cur.fetchall()
+
+    cur.execute("""
+        SELECT TO_CHAR(order_date, 'YYYY-MM-DD') AS date, SUM(total_cost) AS total
+        FROM orders
+        GROUP BY date
+        ORDER BY date
+    """)
+    sales_over_time = cur.fetchall()
+
+    cur.execute("""
+        SELECT p.category, SUM(o.total_cost) AS total_profit
+        FROM orders o
+        JOIN products p ON o.title = p.title
+        GROUP BY p.category
+        ORDER BY total_profit DESC
+    """)
+    profit_by_category = cur.fetchall()
+
+    conn.close()
+
+    response_data = {
+        'sales_per_product': sales_per_product,
+        'sales_over_time': sales_over_time,
+        'profit_by_category': profit_by_category
+    }
+
+    return response_data
+
+@app.post("/update_order_status/{order_id}")
+async def update_order_status(order_id: int, request: Request, admin: str = Depends(get_current_admin)):
+    data = await request.json()
+    new_status = data.get("status")
+
+    if new_status not in ["Pending", "Shipped", "Delivered"]:
+        raise HTTPException(status_code=400, detail="Invalid status")
+
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute("UPDATE orders SET status = %s WHERE id = %s", (new_status, order_id))
+        conn.commit()
+        cursor.close()
+        conn.close()
+        return {"message": "Status updated successfully"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/logout")
+async def logout(request: Request):
+    request.session.clear()
+    return RedirectResponse("/login", status_code=status.HTTP_303_SEE_OTHER)
+
+# Admin category routes
+@app.get("/admin/add/category", response_class=HTMLResponse)
+async def add_category_page(request: Request, admin: str = Depends(get_current_admin)):
+    return templates.TemplateResponse("add_category.html", {"request": request})
+
+@app.post("/admin/add/category")
+async def add_category(request: Request, admin: str = Depends(get_current_admin)):
+    form_data = await request.form()
+    name = form_data["name"]
+    image = form_data["image"]
+
+    if image and allowed_file(image.filename):
+        filename = secure_filename(image.filename)
+        save_path = os.path.join(UPLOAD_FOLDER, filename)
+        with open(save_path, "wb") as buffer:
+            buffer.write(await image.read())
+
+        conn = get_db_connection()
+        cur = conn.cursor()
+        cur.execute("INSERT INTO categories (name, image_url) VALUES (%s, %s)", (name, filename))
+        conn.commit()
+        cur.close()
+        conn.close()
+
+        return RedirectResponse("/admin", status_code=status.HTTP_303_SEE_OTHER)
+    else:
+        raise HTTPException(status_code=400, detail="Invalid file type")
+
+@app.get("/admin/edit/category/{name}", response_class=HTMLResponse)
+async def edit_category_page(name: str, request: Request, admin: str = Depends(get_current_admin)):
+    conn = get_db_connection()
+    cur = conn.cursor()
+    cur.execute("SELECT * FROM categories WHERE name = %s", (name,))
+    category = cur.fetchone()
+    cur.close()
+    conn.close()
     
-#     print("🔍 [INFO] Request received for /admin/analytics_data")
+    return templates.TemplateResponse(
+        "edit_category.html",
+        {
+            "request": request,
+            "category": category
+        }
+    )
 
-#     conn = get_db_connection()
-#     cur = conn.cursor(cursor_factory=RealDictCursor)
+@app.post("/admin/edit/category/{name}")
+async def edit_category(name: str, request: Request, admin: str = Depends(get_current_admin)):
+    form_data = await request.form()
+    new_name = form_data["name"]
+    image_file = form_data.get("image")
 
-#     # Get sales per product
-#     cur.execute("""
-#         SELECT title, SUM(quantity) AS quantity, SUM(total_cost) AS total_sales
-#         FROM orders
-#         GROUP BY title
-#         ORDER BY total_sales DESC
-#     """)
-#     sales_per_product = cur.fetchall()
-#     print("📦 [DATA] Sales per product:", sales_per_product)
+    conn = get_db_connection()
+    cur = conn.cursor()
+    cur.execute("SELECT * FROM categories WHERE name = %s", (name,))
+    category = cur.fetchone()
 
-#     # Get sales over time (grouped by date)
-#     cur.execute("""
-#         SELECT TO_CHAR(order_date, 'YYYY-MM-DD') AS date, SUM(total_cost) AS total
-#         FROM orders
-#         GROUP BY date
-#         ORDER BY date
-#     """)
-#     sales_over_time = cur.fetchall()
-#     print("📈 [DATA] Sales over time:", sales_over_time)
+    image_filename = category["image_url"]
 
-#     # Get profit by category (JOIN with products table)
-#     cur.execute("""
-#         SELECT p.category, SUM(o.total_cost) AS total_profit
-#         FROM orders o
+    if image_file and image_file.filename != '':
+        image_filename = secure_filename(image_file.filename)
+        image_path = os.path.join(UPLOAD_FOLDER, image_filename)
+        with open(image_path, "wb") as buffer:
+            buffer.write(await image_file.read())
 
-# Run using uvicorn if this script is run directly
-if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
+    cur.execute("UPDATE categories SET name = %s, image_url = %s WHERE name = %s",
+                (new_name, image_filename, name))
+    conn.commit()
+    cur.close()
+    conn.close()
+    
+    return RedirectResponse("/admin", status_code=status.HTTP_303_SEE_OTHER)
+
+@app.get("/admin/delete/category/{name}")
+async def delete_category(name: str, admin: str = Depends(get_current_admin)):
+    conn = get_db_connection()
+    cur = conn.cursor()
+    cur.execute("DELETE FROM categories WHERE name = %s", (name,))
+    conn.commit()
+    cur.close()
+    conn.close()
+    return RedirectResponse("/admin", status_code=status.HTTP_303_SEE_OTHER)
+
+# Admin shop products routes
+@app.get("/admin/add/shop_product", response_class=HTMLResponse)
+async def add_shop_product_page(request: Request, admin: str = Depends(get_current_admin)):
+    return templates.TemplateResponse("add_shop_product.html", {"request": request})
+
+@app.post("/admin/add/shop_product")
+async def add_shop_product(request: Request, admin: str = Depends(get_current_admin)):
+    form_data = await request.form()
+    title = form_data["title"]
+    category = form_data["category"]
+    new_price = form_data["new_price"]
+    old_price = form_data["old_price"]
+    badge = form_data["badge"]
+    badge_class = form_data["badge_class"]
+    description = form_data["description"]
+    brand = form_data["brand"]
+    tags = form_data["tags"]
+    stock_kg = form_data["stock_kg"]
+
+    img_default = form_data["img_default"]
+    img_hover = form_data["img_hover"]
+
+    filename_default = secure_filename(img_default.filename) if img_default and allowed_file(img_default.filename) else ""
+    filename_hover = secure_filename(img_hover.filename) if img_hover and allowed_file(img_hover.filename) else ""
+
+    if filename_default:
+        with open(os.path.join(UPLOAD_FOLDER, filename_default), "wb") as buffer:
+            buffer.write(await img_default.read())
+    if filename_hover:
+        with open(os.path.join(UPLOAD_FOLDER, filename_hover), "wb") as buffer:
+            buffer.write(await img_hover.read())
+
+    conn = get_db_connection()
+    cur = conn.cursor()
+    cur.execute("""
+        INSERT INTO shop_products (title, category, img_default, img_hover, new_price, old_price, badge, badge_class, description, brand, sku, tags, stock_kg)
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+    """, (
+        title, category, f"assets/img/{filename_default}", f"assets/img/{filename_hover}", new_price, old_price,
+        badge, badge_class, description, brand, "Null", tags, stock_kg
+    ))
+    conn.commit()
+    cur.close()
+    conn.close()
+    
+    return RedirectResponse("/admin", status_code=status.HTTP_303_SEE_OTHER)
+
+@app.get("/admin/edit/shop_product/{id}", response_class=HTMLResponse)
+async def edit_shop_product_page(id: int, request: Request, admin: str = Depends(get_current_admin)):
+    conn = get_db_connection()
+    cur = conn.cursor()
+    cur.execute("SELECT * FROM shop_products WHERE id = %s", (id,))
+    sp = cur.fetchone()
+    cur.close()
+    conn.close()
+    
+    return templates.TemplateResponse(
+        "edit_shop_product.html",
+        {
+            "request": request,
+            "sp": sp
+        }
+    )
+
+@app.post("/admin/edit/shop_product/{id}")
+async def edit_shop_product(id: int, request: Request, admin: str = Depends(get_current_admin)):
+    form_data = await request.form()
+    title = form_data["title"]
+    category = form_data["category"]
+    new_price = form_data["new_price"]
+    old_price = form_data["old_price"]
+    badge = form_data["badge"]
+    badge_class = form_data["badge_class"]
+    description = form_data["description"]
+    brand = form_data["brand"]
+    tags = form_data["tags"]
+    stock_kg = form_data["stock_kg"]
+
+    img_default = form_data.get("img_default")
+    img_hover = form_data.get("img_hover")
+
+    conn = get_db_connection()
+    cur = conn.cursor()
+    cur.execute("SELECT * FROM shop_products WHERE id = %s", (id,))
+    sp = cur.fetchone()
+
+    img_default_path = sp["img_default"]
+    img_hover_path = sp["img_hover"]
+
+    if img_default and img_default.filename:
+        filename_default = secure_filename(img_default.filename)
+        with open(os.path.join(UPLOAD_FOLDER, filename_default), "wb") as buffer:
+            buffer.write(await img_default.read())
+        img_default_path = f"assets/img/{filename_default}"
+
+    if img_hover and img_hover.filename:
+        filename_hover = secure_filename(img_hover.filename)
+        with open(os.path.join(UPLOAD_FOLDER, filename_hover), "wb") as buffer:
+            buffer.write(await img_hover.read())
+        img_hover_path = f"assets/img/{filename_hover}"
+
+    cur.execute("""
+        UPDATE shop_products SET 
+            title=%s, category=%s, img_default=%s, img_hover=%s, new_price=%s, old_price=%s, 
+            badge=%s, badge_class=%s, description=%s, brand=%s, sku=%s, tags=%s, stock_kg=%s
+        WHERE id=%s
+    """, (
+        title, category, img_default_path, img_hover_path, new_price, old_price,
+        badge, badge_class, description, brand, "Null", tags, stock_kg, id
+    ))
+
+    conn.commit()
+    cur.close()
+    conn.close()
+    
+    return RedirectResponse("/admin", status_code=status.HTTP_303_SEE_OTHER)
+
+@app.get("/admin/delete/shop_product/{id}")
+async def delete_shop_product(id: int, admin: str = Depends(get_current_admin)):
+    conn = get_db_connection()
+    cur = conn.cursor()
+    cur.execute("DELETE FROM shop_products WHERE id = %s", (id,))
+    conn.commit()
+    cur.close()
+    conn.close()
+    return RedirectResponse("/admin", status_code=status.HTTP_303_SEE_OTHER)
+
+# Admin product details routes
+@app.get("/admin/add/product_detail", response_class=HTMLResponse)
+async def add_product_detail_page(request: Request, admin: str = Depends(get_current_admin)):
+    return templates.TemplateResponse("add_product_detail.html", {"request": request})
+
+@app.post("/admin/add/product_detail")
+async def add_product_detail(request: Request, admin: str = Depends(get_current_admin)):
+    form_data = await request.form()
+    product_id = form_data["product_id"]
+    ingredients = form_data["ingredients"]
+    health_benefits = form_data["health_benefits"]
+
+    conn = get_db_connection()
+    cur = conn.cursor()
+    cur.execute("INSERT INTO product_details (product_id, ingredients, health_benefits) VALUES (%s, %s, %s)",
+                (product_id, ingredients, health_benefits))
+    conn.commit()
+    cur.close()
+    conn.close()
+    
+    return RedirectResponse("/admin", status_code=status.HTTP_303_SEE_OTHER)
+
+@app.get("/admin/edit/product_detail/{product_id}", response_class=HTMLResponse)
+async def edit_product_detail_page(product_id: int, request: Request, admin: str = Depends(get_current_admin)):
+    conn = get_db_connection()
+    cur = conn.cursor()
+    cur.execute("SELECT * FROM product_details WHERE product_id = %s", (product_id,))
+    detail = cur.fetchone()
+    cur.close()
+    conn.close()
+    
+    return templates.TemplateResponse(
+        "edit_product_detail.html",
+        {
+            "request": request,
+            "detail": detail
+        }
+    )
+
+@app.post("/admin/edit/product_detail/{product_id}")
+async def edit_product_detail(product_id: int, request: Request, admin: str = Depends(get_current_admin)):
+    form_data = await request.form()
+    ingredients = form_data["ingredients"]
+    health_benefits = form_data["health_benefits"]
+
+    conn = get_db_connection()
+    cur = conn.cursor()
+    cur.execute("UPDATE product_details SET ingredients=%s, health_benefits=%s WHERE product_id=%s",
+                (ingredients, health_benefits, product_id))
+    conn.commit()
+    cur.close()
+    conn.close()
+    
+    return RedirectResponse("/admin", status_code=status.HTTP_303_SEE_OTHER)
+
+@app.get("/admin/delete/product_detail/{product_id}")
+async def delete_product_detail(product_id: int, admin: str = Depends(get_current_admin)):
+    conn = get_db_connection()
+    cur = conn.cursor()
+    cur.execute("DELETE FROM product_details WHERE product_id = %s", (product_id,))
+    conn.commit()
+    cur.close()
+    conn.close()
+    return RedirectResponse("/admin", status_code=status.HTTP_303_SEE_OTHER)
+
+@app.get("/contact", response_class=HTMLResponse)
+async def contact(request: Request):
+    user_data = None
+
+    if "user_id" in request.session:
+        conn = get_db_connection()
+        cur = conn.cursor()
+        cur.execute("SELECT username FROM users WHERE id = %s", (request.session["user_id"],))
+        user_data = cur.fetchone()
+        conn.close()
+        
+    return templates.TemplateResponse(
+        "contact.html",
+        {
+            "request": request,
+            "user": user_data
+        }
+    )

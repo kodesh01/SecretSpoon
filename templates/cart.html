@@ -4,6 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
       <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='assets/img/icon.png') }}">
+      <script src="https://cdn.tailwindcss.com"></script>
     <!--=============== FLATICON ===============-->
     <link
       rel="stylesheet"
@@ -16,8 +17,11 @@
     />
     <!--=============== CSS ===============-->
     <link rel="stylesheet" href="{{ url_for('static', filename='./assets/css/styles.css') }}" />
+    <!--=============== Razorpay ===============-->
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 
     <title>Ecommerce Website</title>
+  
   </head>
   <body>
     <!--=============== HEADER ===============-->
@@ -236,6 +240,36 @@
 </div>
 
       </section>
+      <!-- Checkout Modal -->
+<div id="checkout-modal"
+     class="hidden fixed inset-0 z-50 bg-black bg-opacity-50 flex items-center justify-center">
+  <div class="bg-white p-6 rounded-lg shadow-lg w-full max-w-md mx-auto relative">
+    <h3 class="text-xl font-semibold mb-4">Checkout</h3>
+
+    <label class="block mb-1 text-sm font-medium">Name:</label>
+    <input id="customer-name" type="text"
+           class="w-full p-2 border border-gray-300 rounded mb-3"
+           placeholder="Enter your name" />
+
+    <label class="block mb-1 text-sm font-medium">Address:</label>
+    <textarea id="customer-address"
+              class="w-full p-2 border border-gray-300 rounded mb-3"
+              placeholder="Enter your address" rows="3"></textarea>
+
+    <div id="order-summary" class="text-sm text-gray-700 border-t pt-3 mb-4"></div>
+
+    <div class="flex gap-3">
+      <button id="pay-cod"
+              class="w-1/2 bg-green-600 hover:bg-green-700 text-white py-2 rounded">
+        Cash on Delivery
+      </button>
+      <button id="pay-upi"
+              class="w-1/2 bg-blue-600 hover:bg-blue-700 text-white py-2 rounded">
+        Pay with UPI
+      </button>
+    </div>
+  </div>
+</div>
 
       <!--=============== NEWSLETTER ===============-->
       <section class="newsletter section home__newsletter">
@@ -361,45 +395,8 @@
     <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
 
     <!--=============== MAIN JS ===============-->
- <script>
-  document.getElementById("buy-now-btn").addEventListener("click", function (e) {
-    e.preventDefault();
-    let cart = JSON.parse(localStorage.getItem("cart")) || [];
-
-    cart = cart.map(item => {
-      item.unit = item.unit || "g";
-      return item;
-    });
-
-    if (cart.length === 0) {
-      alert("Your cart is empty.");
-      return;
-    }
-
-    fetch("/place_order_bulk", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ cart: cart })
-    })
-    .then(response => response.json())
-    .then(data => {
-      if (data.status === "success") {
-        alert(data.message);
-        localStorage.removeItem("cart");
-        window.location.reload();
-      } else if (data.status === "redirect") {
-        showLoginPrompt(data.url);
-      } else {
-        alert(data.message || "Failed to place order.");
-      }
-    })
-    .catch(error => {
-      console.error("Bulk order error:", error);
-      alert("Error placing bulk order.");
-    });
-  });
-
-  function showLoginPrompt(loginUrl) {
+<script>
+    function showLoginPrompt(loginUrl) {
     const modal = document.getElementById("customModal");
     modal.style.display = "flex";
     document.getElementById("confirmLogin").onclick = () => window.location.href = loginUrl;
@@ -477,6 +474,73 @@
     localStorage.setItem("cart", JSON.stringify(cart));
     loadCart();
   }
+  function showCheckoutModal(cart) {
+  const modal = document.getElementById("checkout-modal");
+  modal.classList.remove("hidden");
+  modal.classList.add("flex");
+
+  prefillUserInfo(); // Populate saved user address/info
+
+  const summary = document.getElementById("order-summary");
+  let total = 0;
+  const shipping = 10;
+
+  summary.innerHTML = `<strong>Order Summary:</strong><ul class="mt-1 list-disc list-inside">`;
+
+  cart.forEach(item => {
+    const unit = item.unit || "g";
+    const isKg = unit === "kg";
+    const isPcs = unit === "pcs";
+
+    let quantity = item.quantity;
+    let displayQty = isKg ? (quantity / 1000) : quantity;
+    let displayUnit = isPcs ? "pcs" : (isKg ? "kg" : "g");
+
+    let subtotal = 0;
+    if (isPcs) {
+      subtotal = item.price * quantity;
+    } else {
+      const qtyInKg = quantity / 1000;
+      subtotal = item.price * qtyInKg;
+    }
+
+    total += subtotal;
+
+    summary.innerHTML += `
+      <li>
+        ${item.title} - ${displayQty} ${displayUnit} - ₹${item.price}/${displayUnit} 
+        → <strong>₹${subtotal.toFixed(2)}</strong>
+      </li>`;
+  });
+
+  summary.innerHTML += `
+    </ul>
+    <div class="mt-2">Subtotal: ₹${total.toFixed(2)}</div>
+    <div class="mt-1">Shipping: ₹${shipping.toFixed(2)}</div>
+    <div class="mt-2 font-bold text-lg">Final Total: ₹${(total + shipping).toFixed(2)}</div>
+  `;
+
+  // Set payment buttons
+  document.getElementById("pay-cod").onclick = () => placeOrder("COD", cart);
+  document.getElementById("pay-upi").onclick = () => startRazorpay(cart, total + shipping);
+}
+
+
+
+function prefillUserInfo() {
+  console.log("Calling /get_user_info API...");
+
+  fetch("/get_user_info")
+    .then(response => response.json())
+    .then(data => {
+      console.log("User info response:", data);  // 🔍 DEBUG
+      document.getElementById("customer-name").value = data.name || "";
+      document.getElementById("customer-address").value = data.address || "";
+    })
+    .catch(err => {
+      console.error("Failed to fetch user info:", err);
+    });
+}
 
   function removeItem(index) {
     const cart = JSON.parse(localStorage.getItem("cart")) || [];
@@ -486,9 +550,130 @@
   }
 
   document.addEventListener("DOMContentLoaded", loadCart);
+
 </script>
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<script>
+  document.getElementById("buy-now-btn").addEventListener("click", function (e) {
+    e.preventDefault();
 
+    let cart = JSON.parse(localStorage.getItem("cart")) || [];
+    cart = cart.map(item => ({ ...item, unit: item.unit || "g" }));
 
+    if (cart.length === 0) {
+      alert("Your cart is empty.");
+      return;
+    }
+
+    showCheckoutModal(cart);
+  });
+
+  function placeOrder(paymentType, cart) {
+    const name = document.getElementById("customer-name").value.trim();
+    const address = document.getElementById("customer-address").value.trim();
+
+    if (!name || !address) {
+      alert("Please fill in your name and address.");
+      return;
+    }
+
+    fetch("/place_order_bulk", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ cart, name, address, payment: paymentType })
+    })
+    .then(res => res.json())
+    .then(data => {
+      if (data.status === "success") {
+        alert("Order placed successfully!");
+        localStorage.removeItem("cart");
+        window.location.reload();
+      } else if (data.status === "redirect") {
+        window.location.href = data.url;
+      } else {
+        alert(data.message || "Failed to place order.");
+      }
+    })
+    .catch(err => {
+      console.error("Order error:", err);
+      alert("Error placing order.");
+    });
+  }
+
+  function startRazorpay(cart, total) {
+    const name = document.getElementById("customer-name").value.trim();
+    const address = document.getElementById("customer-address").value.trim();
+
+    if (!name || !address) {
+      alert("Please fill in your name and address.");
+      return;
+    }
+
+    const options = {
+      key: "rzp_test_uob50EBgd6fzQE", // 🔁 Replace this
+      amount: total * 100, // in paisa
+      currency: "INR",
+      name: "Your Store",
+      description: "Payment for order",
+      handler: function (response) {
+        placeOrder("UPI", cart);
+      },
+      prefill: { name },
+      theme: { color: "#4F46E5" }
+    };
+
+    const rzp = new Razorpay(options);
+    rzp.open();
+  }
+
+  // Optional: Click outside to close modal
+  document.getElementById("checkout-modal").addEventListener("click", function (e) {
+    if (e.target.id === "checkout-modal") {
+      this.classList.add("hidden");
+    }
+  });
+</script>
+<script>
+  document.getElementById("pay-upi").onclick = async function () {
+    // Step 1: Call backend to create Razorpay order
+    const response = await fetch("/create_order", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ amount: 10000 })  // ₹100 = 10000 paise
+    });
+
+    const order = await response.json();
+
+    // Step 2: Razorpay options
+    const options = {
+      key: "YOUR_RAZORPAY_KEY_ID",  // Replace with your Razorpay Test/Live Key ID
+      amount: order.amount,
+      currency: "INR",
+      name: "Your Company Name",
+      description: "UPI Payment",
+      order_id: order.id,
+      handler: function (response) {
+        // ✅ Payment Success Handler
+        alert("Payment Successful!");
+        console.log("Payment ID:", response.razorpay_payment_id);
+        console.log("Order ID:", response.razorpay_order_id);
+        console.log("Signature:", response.razorpay_signature);
+      },
+      theme: {
+        color: "#0d6efd"
+      },
+      method: {
+        upi: true // Only show UPI option
+      }
+    };
+
+    // Step 3: Open Razorpay UI
+    const rzp = new Razorpay(options);
+    rzp.open();
+  };
+</script>
     <script src="{{ url_for('static', filename='assets/js/main.js') }}"></script>
   </body>
 </html>

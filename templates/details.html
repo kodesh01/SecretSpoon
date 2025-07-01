@@ -622,7 +622,7 @@ document.getElementById("order-btn").addEventListener("click", function (e) {
   .then(response => response.json())
   .then(data => {
     if (data.status === "success") {
-      alert(data.message);
+      window.location.href = "/checkout";
     } else if (data.status === "redirect") {
       showLoginModal(data.url);
     } else {
@@ -634,7 +634,6 @@ document.getElementById("order-btn").addEventListener("click", function (e) {
     alert("Error placing order");
   });
 });
-
 
 function showLoginModal(loginUrl) {
   const modal = document.getElementById("customModal");

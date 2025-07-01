@@ -11,10 +11,25 @@ from datetime import datetime
 import psycopg2.extras
 from werkzeug.security import generate_password_hash, check_password_hash
 import bcrypt
+import razorpay
 app = Flask(__name__, template_folder='./templates', static_folder='static')
 app.secret_key = "Kodesh@12"
 
-# app.secret_key = 'Kodesh@12'
+# ✅ razorpay authentication
+client = razorpay.Client(auth=("rzp_test_uob50EBgd6fzQE", "iJM4KW20FygmRRYRJo1Gr8HI"))
+
+@app.route("/create_order", methods=["POST"])
+def create_order():
+    data = request.get_json()
+    amount = data["amount"]  # in paise. ₹100 = 10000
+
+    order = client.order.create({
+        "amount": amount,
+        "currency": "INR",
+        "payment_capture": 1  # Auto-capture after success
+    })
+
+    return jsonify(order)
 
 # ✅ PostgreSQL Supabase Config
 DB_USER = "postgres.xapwrudbiysziedhrvcd"
@@ -282,14 +297,25 @@ def place_order_bulk():
         if not user_id:
             return jsonify({'status': 'redirect', 'url': '/user_login'}), 401
 
-        data = request.json.get("cart", [])
-        if not data:
+        data = request.get_json()
+        cart = data.get("cart", [])
+        address = data.get("address", "").strip()
+        payment_type = data.get("payment", "").strip().upper()
+
+        print("Incoming JSON:", data)
+
+        if not cart:
             return jsonify({'status': 'error', 'message': 'Cart is empty'}), 400
+        if not address or not payment_type:
+            return jsonify({'status': 'error', 'message': 'Address and payment type required'}), 400
+
+        # Convert payment type string to boolean value
+        payment_status = True if payment_type == "UPI" else False
 
         conn = get_db_connection()
         cur = conn.cursor()
 
-        for item in data:
+        for item in cart:
             title = item.get('title')
             quantity = float(item.get('quantity'))  # Quantity
             unit = item.get('unit', 'g').lower()
@@ -305,13 +331,23 @@ def place_order_bulk():
             else:
                 total_cost = price * quantity  # fallback
 
-            # ✅ Insert quantity and unit too
+            # ✅ Insert payment_status as boolean
             cur.execute("""
-                INSERT INTO orders (user_id, order_date, title, total_cost, status, quantity, unit)
-                VALUES (%s, %s, %s, %s, %s, %s, %s)
-            """, (user_id, datetime.now(), title, round(total_cost, 2), 'Pending', quantity, unit))
+                INSERT INTO orders (user_id, order_date, title, total_cost, status, quantity, unit, address, payment)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+            """, (user_id, datetime.now(), title, round(total_cost, 2), 'Pending', quantity, unit, address, payment_status))
 
-            print(f"🧾 Title: {title}, Qty: {quantity}{unit}, ₹{price}, Total: ₹{round(total_cost, 2)}")
+            print("📝 Inserting order:", {
+                "user_id": user_id,
+                "order_date": datetime.now(),
+                "title": title,
+                "total_cost": round(total_cost, 2),
+                "status": 'Pending',
+                "quantity": quantity,
+                "unit": unit,
+                "address": address,
+                "payment": payment_status
+            })
 
         conn.commit()
         cur.close()
@@ -319,6 +355,7 @@ def place_order_bulk():
 
         return jsonify({'status': 'success', 'message': 'All items ordered successfully'})
     except Exception as e:
+        print("🔥 Error placing order:", e)
         return jsonify({'status': 'error', 'message': str(e)}), 500
 
 #########################################################################################################################
@@ -587,9 +624,13 @@ def story():
         conn.close()
     return render_template("about.html", lang=lang, user=user_data)
 
-@app.route('/checkout')
+@app.route("/checkout")
 def checkout():
-    return render_template("checkout.html")
+    order = session.get("order")
+    if not order:
+        return redirect("/")  # or show a message
+
+    return render_template("checkout.html", order=order)
 
 @app.route('/details/<int:product_id>')
 def details(product_id):
@@ -720,6 +761,41 @@ def admin():
                            shop_products=shop_products,
                            product_details=product_details)
 
+@app.route("/get_user_info", methods=["GET"])
+def get_user_info():
+    user_id = session.get("user_id")
+    print("Session user_id:", user_id)  # 🔍 DEBUG
+
+    if not user_id:
+        return jsonify({"error": "Unauthorized"}), 401
+
+    try:
+        conn = psycopg2.connect(
+            host="aws-0-ap-south-1.pooler.supabase.com",
+            database="postgres",
+            user="postgres.xapwrudbiysziedhrvcd",
+            password="Kodesh@12",
+            port="5432"
+        )
+        cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+
+        cur.execute("SELECT username AS name, address_line AS address FROM users WHERE id = %s", (user_id,))
+        user = cur.fetchone()
+
+        print("Fetched user:", user)  # 🔍 DEBUG
+
+        cur.close()
+        conn.close()
+
+        if user:
+            return jsonify(user)
+        else:
+            return jsonify({"error": "User not found"}), 404
+
+    except Exception as e:
+        print("DB error:", e)
+        return jsonify({"error": "Internal server error"}), 500
+
 @app.route('/admin/analytics_data')
 def analytics_data():
     print("🔍 [INFO] Request received for /admin/analytics_data")
@@ -771,27 +847,41 @@ def analytics_data():
     return jsonify(response_data)
 
 
-
 @app.route("/update_order_status/<int:order_id>", methods=["POST"])
 def update_order_status(order_id):
     if 'user_id' not in session:
+        print("🚫 Unauthorized: No user_id in session.")
         return jsonify({"error": "Unauthorized"}), 401
 
-    new_status = request.json.get("status")
+    user_id = session['user_id']
+    data = request.get_json()
+    print(f"🔄 Received request to update order {order_id} by user {user_id} with data: {data}")
 
+    new_status = data.get("status")
     if new_status not in ["Pending", "Shipped", "Delivered"]:
+        print(f"⚠️ Invalid status: {new_status}")
         return jsonify({"error": "Invalid status"}), 400
 
     try:
         conn = get_db_connection()
         cursor = conn.cursor()
+
+        # Optional: Check if the order exists
+        cursor.execute("SELECT id FROM orders WHERE id = %s", (order_id,))
+        if not cursor.fetchone():
+            print(f"❌ Order {order_id} not found.")
+            return jsonify({"error": "Order not found"}), 404
+
         cursor.execute("UPDATE orders SET status = %s WHERE id = %s", (new_status, order_id))
         conn.commit()
         cursor.close()
         conn.close()
+        print(f"✅ Order {order_id} status updated to {new_status}")
         return jsonify({"message": "Status updated successfully"})
     except Exception as e:
+        print(f"❌ Exception occurred: {e}")
         return jsonify({"error": str(e)}), 500
+
 
 @app.route('/logout')
 def logout():
@@ -826,6 +916,7 @@ def add_category():
         else:
             return "Invalid file type", 400
     return render_template('add_category.html')
+
 
 @app.route('/admin/edit/category/<name>', methods=['GET', 'POST'])
 def edit_category(name):
@@ -1054,6 +1145,7 @@ def contact():
         conn.close()
         
     return render_template("contact.html",user=user_data)
+################################################# Payment 
 
 if __name__ == '__main__':
     app.run(debug=True)
