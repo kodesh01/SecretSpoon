@@ -309,7 +309,6 @@ def place_order_bulk():
         if not address or not payment_type:
             return jsonify({'status': 'error', 'message': 'Address and payment type required'}), 400
 
-        # Convert payment type string to boolean value
         payment_status = True if payment_type == "UPI" else False
 
         conn = get_db_connection()
@@ -321,7 +320,6 @@ def place_order_bulk():
             unit = item.get('unit', 'g').lower()
             price = float(item.get('price'))        # ₹ per unit
 
-            # Calculate total cost
             if unit in ["g", "gram", "grams", "kg", "kilogram", "kilograms"]:
                 total_cost = price * (quantity / 1000)
             elif unit in ["ml", "millilitre", "millilitres", "litre", "litres"]:
@@ -331,7 +329,8 @@ def place_order_bulk():
             else:
                 total_cost = price * quantity  # fallback
 
-            # ✅ Insert payment_status as boolean
+            total_cost += 10.0
+
             cur.execute("""
                 INSERT INTO orders (user_id, order_date, title, total_cost, status, quantity, unit, address, payment)
                 VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
@@ -357,6 +356,7 @@ def place_order_bulk():
     except Exception as e:
         print("🔥 Error placing order:", e)
         return jsonify({'status': 'error', 'message': str(e)}), 500
+
 
 #########################################################################################################################
                                                #----- Account Manager ------
